@@ -6,7 +6,7 @@ import os
 from os.path import normpath
 from json import *
 from turtle import done
-import pandas
+import pandas as pd
 
 ### Interface graphique
 from tkinter import *

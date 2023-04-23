@@ -1,0 +1,27 @@
+environs
+IPython
+pyOpenSSL
+bcrypt
+pandas
+Google2Pandas
+pysqldf
+pandasql
+gspread
+gspread-dataframe
+oauth2client
+pip-search
+google-auth-httplib2
+google-auth-oauthlib
+google-analytics-data
+google-api-python-client
+## old
+googleads
+## TODO ? new:
+# google-ads
+mysql-connector-python
+matplotlib
+openpyxl
+html2text
+black
+currencyconverter
+requests

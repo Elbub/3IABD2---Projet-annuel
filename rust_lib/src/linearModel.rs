@@ -71,26 +71,33 @@ pub mod linear_model{
         for _ in 0..number_of_parameters + 1 {
             w.push(rng.gen_range(0f32..1f32)); // initialisation aléatoire entre 0 et 1
         }
+        //println!("w: {:?}",w);
         let learning_rate: f32 = 0.001;
         for i in 0..10_000 {
             let k: usize = rng.gen_range(0..labels.len());
+            //println!("k :{:?}",k);
             let y_k: f32 = labels[k];
+            // println!("y_k: {:?}",y_k);
             let mut x_k: Vec<f32> = Vec::with_capacity(number_of_parameters + 1);
             x_k.push(1f32);
             for i in 0..number_of_parameters {
                 x_k.push(points[k][i]);
             }
+            // println!("x_k: {:?}",x_k);
             let mut signal: f32 = 0f32;
-            for i in 0..number_of_parameters {
+            for i in 0..number_of_parameters+1 {
                 signal += w[i] * x_k[i];
             }
+            // println!("signal: {:?}",signal);
             let mut g_x_k: f32 = 0.0;
             if signal >= 0f32 {
                 g_x_k = 1f32;
             }
+            // println!("g_x_k: {:?}",g_x_k);
             for i in 0..number_of_parameters + 1 {
                 w[i] += learning_rate * (y_k - g_x_k) * x_k[i];
             }
+            // println!("w: {:?}",w);
         }
         w
     }

@@ -1,6 +1,5 @@
 !.gitignore
 venv
 .env
-
-.idea/*
 .idea/
+.idea/*

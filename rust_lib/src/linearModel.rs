@@ -63,7 +63,7 @@ pub mod linear_model{
         root.present();
     }
 
-    pub fn linear_model_training(labels : &Vec<f32>, points: &Vec<Vec<f32>>) -> Vec<f32> {
+    pub fn linear_model_training(labels : &Vec<f32>, points: &Vec<Vec<f32>>) -> Vec<f32> {wwwwwwwwwwww
         use rand::Rng;
         let mut rng = rand::thread_rng();
         let number_of_parameters:usize = points[0].len();
@@ -101,4 +101,12 @@ pub mod linear_model{
         }
         w
     }
+
+    pub fn trained_model(number_of_points: usize) -> Vec<f32>{
+        let points = points_array(number_of_points);
+        let label_points = points_label(&points);
+
+        linear_model_training(&label_points, &points)
+    }
+
 }

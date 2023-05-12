@@ -1,7 +1,38 @@
 //pub mod linearModel;
 #[no_mangle]
-extern "C" fn hello_world() {
+extern "C" fn hell_world() {
     println!("Hello World");
+}
+
+#[no_mangle]
+extern "C" fn array_test(size: usize, inner_size: usize) -> *mut *mut i32 {
+    let mut outer_vec = Vec::with_capacity(size);
+
+    for _ in 0..size {
+        let mut inner_vec = Vec::with_capacity(inner_size);
+
+        for j in 0..inner_size {
+            inner_vec.push(j as i32);
+        }
+        outer_vec.push(inner_vec);
+    }
+
+    println!("{:?}", outer_vec);
+
+    let mut outer_ptr_vec = Vec::with_capacity(size);
+    for inner_vec in outer_vec {
+        let mut inner_slice = inner_vec.into_boxed_slice();
+        let inner_ptr = inner_slice.as_mut_ptr();
+        std::mem::forget(inner_slice);
+        outer_ptr_vec.push(inner_ptr);
+    }
+
+    let mut arr_slice = outer_ptr_vec.into_boxed_slice();
+    let ptr = arr_slice.as_mut_ptr();
+
+    std::mem::forget(arr_slice);
+
+    ptr
 }
 
 #[no_mangle]

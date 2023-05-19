@@ -35,22 +35,44 @@ extern "C" fn array_test(size: usize, inner_size: usize) -> *mut *mut i32 {
     ptr
 }
 
-#[no_mangle]
-pub extern "C" fn points_array(number_of_points: usize) -> *mut Vec<Vec<f32>>{
-    use rand::Rng;
-    unsafe {
-        let mut vec_of_points = Vec::with_capacity(number_of_points);
-        println!("Yo");
-        for _ in 0..number_of_points {
-            let coordinates : Vec<f32> =
-                Vec::from([rand::thread_rng().gen_range(0f32..10f32), rand::thread_rng().gen_range(0f32..10f32)]);
-            vec_of_points.push(coordinates);
-        }
-        println!("{:?}", vec_of_points);
 
-        Box::into_raw(Box::new(vec_of_points))
+#[no_mangle]
+pub extern "C" fn another_points_array(number_of_points: usize) -> *mut f32{
+    use rand::Rng;
+    let mut vec_of_points = Vec::with_capacity(number_of_points);
+    for _ in 0..number_of_points{
+        let coordinates : f32 = rand::thread_rng().gen_range(0f32..10f32);
+        vec_of_points.push(coordinates);
     }
+    println!("{:?}", vec_of_points);
+
+    let arr_slice = vec_of_points.leak();
+
+    arr_slice.as_mut_ptr()
+
 }
+
+    #[no_mangle]
+    pub extern "C" fn points_array(number_of_points: usize) -> *mut *mut f32 {
+        use rand::Rng;
+        unsafe {
+            let mut vec_of_points = Vec::with_capacity(number_of_points);
+            for _ in 0..number_of_points {
+                let coordinates: Vec<f32> = vec![
+                    rand::thread_rng().gen_range(0f32..10f32),
+                    rand::thread_rng().gen_range(0f32..10f32),
+                ];
+                println!("{:?}", coordinates);
+                let arr_ptr = Box::into_raw(coordinates.into_boxed_slice()) as *mut f32;
+                vec_of_points.push(arr_ptr);
+            }
+
+            let arr_slice = vec_of_points.leak();
+            let ptr = arr_slice.as_mut_ptr();
+
+            ptr
+        }
+    }
 
 /*
 #[no_mangle]

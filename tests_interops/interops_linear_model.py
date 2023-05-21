@@ -1,35 +1,59 @@
 import ctypes
+import _ctypes
 import numpy as np
 
 my_lib = ctypes.CDLL(r"..\rust_lib\target\debug\rust_lib.dll")
-# my_lib.hello_world()
-# my_lib.points_array(10)
 
-# my_lib.array_test.argtypes = [ctypes.c_usi]
-my_lib.array_test.restype = ctypes.POINTER(ctypes.c_int32)
+my_lib.points_array.argtypes = [ctypes.c_int32, ctypes.c_int32]
 
 my_lib.points_array.restype = ctypes.POINTER(ctypes.c_float)
-my_lib.another_points_array.restype = ctypes.POINTER(ctypes.c_float)
 
-n = 5
-# o = 2
+my_lib.delete_float_array.argtypes = [
+    ctypes.POINTER(ctypes.c_float),
+    ctypes.c_int32,
+]
+my_lib.delete_float_array.restype = None
 
-# native_pointer = my_lib.array_test(n, o)
-# arr = np.ctypeslib.as_array(native_pointer, (n, o))
-# print(arr)
+n = 10
+dimension = 2
+native_pointer = my_lib.points_array(n, dimension)
 
-my_lib.points_array.restype = ctypes.c_void_p
+arr = np.ctypeslib.as_array(native_pointer, ((n * dimension),))
+print(arr)
+
+my_lib.delete_float_array(native_pointer, n * dimension)
+
+print(len(arr))
 
 
-ptr = my_lib.points_array(5)
+def create_n_dimension_array(arr_dimension, my_array):
+    my_points_array = []
+    second_array = []
+    count = 0
+    for value in my_array:
+        second_array.append(value)
+        count += 1
+        if count == arr_dimension:
+            count = 0
+            my_points_array.append(second_array)
+            second_array = []
+    return my_points_array
 
-array_ptr = ctypes.cast(ptr, ctypes.POINTER(ctypes.POINTER(ctypes.c_float)))
 
-print(array_ptr[0])
+points_array = create_n_dimension_array(dimension, arr)
 
-for i in range(5):
-    inner_ptr = array_ptr[i]
-    point = ctypes.cast(inner_ptr, ctypes.POINTER(ctypes.c_float * 2)).contents
-    x = point[0]
-    y = point[1]
-    print(f"Point {i}: x = {x}, y = {y}")
+print(points_array)
+print(len(points_array))
+
+my_lib.points_label.argtypes = [
+    ctypes.POINTER(ctypes.c_float),
+    ctypes.c_int32,
+    ctypes.c_int32,
+]
+my_lib.points_label.restype = ctypes.POINTER(ctypes.c_float)
+
+native_label_pointer = my_lib.points_label(native_pointer, (n * dimension), dimension)
+
+label_arr = np.ctypeslib.as_array(native_label_pointer, (n,))
+
+# print(label_arr)

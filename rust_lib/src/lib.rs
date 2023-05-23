@@ -1,9 +1,10 @@
+
 #[no_mangle]
 pub extern "C" fn points_array(number_of_points: usize, dimension: usize) -> *mut f32{
     use rand::Rng;
     let mut vec_of_points = Vec::with_capacity(number_of_points*dimension);
     for _ in 0..(number_of_points*dimension){
-        let coordinates : f32 = rand::thread_rng().gen_range(0f32..10f32);
+        let coordinates : f32 = rand::thread_rng().gen_range(0f32..1f32);
         vec_of_points.push(coordinates);
     }
 
@@ -21,11 +22,39 @@ extern "C" fn delete_int_array(arr: *mut i32, arr_len: i32) {
 }
 
 #[no_mangle]
-extern "C" fn delete_float_array(arr: *mut f32, arr_len: i32) {
+extern "C" fn delete_float_array(arr: *mut f32 , arr_len: i32) {
     unsafe {
         Vec::from_raw_parts(arr, arr_len as usize, arr_len as usize)
     };
 }
+
+// j'ai modifié cette fonction, la version originale est commentée en dessous mais ça marche toujours pas - Clément
+#[no_mangle]
+extern "C" fn points_label(vec_of_points_ptr: *mut f32, arr_size: usize, arr_dimension: usize) -> *mut f32{
+    unsafe {
+        let vec_of_points = Vec::from_raw_parts(vec_of_points_ptr,
+                                                arr_size,
+                                                arr_size);
+        let mut vec_of_labels: Vec<f32> = Vec::with_capacity(arr_size / arr_dimension);
+        println!("{:?}", vec_of_points);
+
+        for i in(0..arr_size).step_by(arr_dimension) {
+            let mut to_compare: Vec<f32> = Vec::with_capacity(arr_dimension);
+            for j in i..(i + arr_dimension) {
+                to_compare.push(vec_of_points[j]);
+            }
+            if -to_compare[1] + to_compare[0] + 0.25 >= 0. {
+                vec_of_labels.push(1f32);
+            } else { vec_of_labels.push(0f32) }
+        }
+
+        let arr_slice = vec_of_labels.into_boxed_slice();
+        let ptr = Box::into_raw(arr_slice) as *mut f32;
+
+        ptr
+    }
+}
+
 
 
 // #[no_mangle]
@@ -35,7 +64,7 @@ extern "C" fn delete_float_array(arr: *mut f32, arr_len: i32) {
 //     }
 // }
 
-
+/*
 #[no_mangle]
 extern "C" fn points_label(vec_of_points_ptr: *mut f32, arr_size: usize, arr_dimension: usize) -> *mut f32{
     // for i in 0..vec_of_points.len() {
@@ -49,7 +78,7 @@ extern "C" fn points_label(vec_of_points_ptr: *mut f32, arr_size: usize, arr_dim
                                                 arr_size as usize,
                                                 arr_size as usize);
 
-        println!("{:?}", vec_of_points);
+        //println!("{:?}", vec_of_points);
 
         let mut to_compare: Vec<f32> = Vec::with_capacity(arr_dimension);
         let mut count = 0;
@@ -61,19 +90,20 @@ extern "C" fn points_label(vec_of_points_ptr: *mut f32, arr_size: usize, arr_dim
             if count == arr_dimension{
                 if -to_compare[1] + to_compare[0] + 0.25 >= 0. {
                     vec_of_labels.push(1f32);
+                    count = 0;
                 } else { vec_of_labels.push(0f32) }
                 to_compare.clear();
-
             }
-            }
-
-
+        }
 
         let arr_slice = vec_of_labels.leak();
 
         arr_slice.as_mut_ptr()
     }
 }
+
+
+ */
 
 // #[no_mangle]
 // extern "C" fn linear_model_training(labels : &Vec<f32>, points: &Vec<Vec<f32>>) -> Vec<f32> {

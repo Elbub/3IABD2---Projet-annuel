@@ -85,7 +85,7 @@ extern "C" fn points_label(vec_of_points_ptr: *mut f32, arr_size: usize, arr_dim
             }
         }
 
-        println!("label from points_label {:?}\n", vec_of_labels);
+        // println!("label from points_label {:?}\n", vec_of_labels);
         let arr_slice = vec_of_labels.leak();
 
         arr_slice.as_mut_ptr()
@@ -129,10 +129,10 @@ extern "C" fn linear_model_training(w_ptr: *mut f32, labels_ptr : *mut f32, vec_
         );
 
         let mut rng = rand::thread_rng();
-
-        println!("w {:?}\n\n", w);
-        println!("labels {:?}\n\n", labels);
-        println!("vec_of_points{:?}\n\n", vec_of_points);
+        //
+        // println!("w {:?}\n\n", w);
+        // println!("labels {:?}\n\n", labels);
+        // println!("vec_of_points{:?}\n\n", vec_of_points);
 
 
         //println!("w: {:?}",w);
@@ -163,11 +163,12 @@ extern "C" fn linear_model_training(w_ptr: *mut f32, labels_ptr : *mut f32, vec_
             }
             // println!("w: {:?}",w);
         }
-        println!("value of W{:?}\n", w);
-        println!("this is a test");
+        // println!("value of W{:?}\n", w);
+        // println!("this is a test");
         let arr_slice = w.leak();
-        println!("Another one -dj khaled");
+        // println!("Another one -dj khaled");
         arr_slice.as_mut_ptr()
+        // println!("{:?}", mlkjhg);
     }
 }
 

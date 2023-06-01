@@ -1,3 +1,8 @@
+use rand::Rng;
+
+pub struct MyLinearModel{
+    w:  *mut f32,
+}
 
 #[no_mangle]
 pub extern "C" fn points_array(number_of_points: usize, dimension: usize) -> *mut f32{
@@ -27,32 +32,6 @@ extern "C" fn delete_float_array(arr: *mut f32 , arr_len: i32) {
         Vec::from_raw_parts(arr, arr_len as usize, arr_len as usize)
     };
 }
-
-// j'ai modifié cette fonction, la version originale est commentée en dessous mais ça marche toujours pas - Clément
-// #[no_mangle]
-// extern "C" fn points_label(vec_of_points_ptr: *mut f32, arr_size: usize, arr_dimension: usize) -> *mut f32{
-//     unsafe {
-//         let vec_of_points = Vec::from_raw_parts(vec_of_points_ptr,
-//                                                 arr_size*arr_dimension,
-//                                                 arr_size*arr_dimension);
-//         let mut vec_of_labels: Vec<f32> = Vec::with_capacity(arr_size);
-//         println!("{:?}", vec_of_points);
-//
-//         for i in(0..arr_size).step_by(arr_dimension) {
-//             let mut to_compare: Vec<f32> = Vec::with_capacity(arr_dimension);
-//             for j in i..(i + arr_dimension) {
-//                 to_compare.push(vec_of_points[j]);
-//             }
-//             if -to_compare[1] + to_compare[0] + 0.25 >= 0. { // à changer
-//                 vec_of_labels.push(1f32);
-//             } else { vec_of_labels.push(0f32) }
-//         }
-//
-//         let arr_slice = vec_of_labels.leak();
-//         arr_slice.as_mut_ptr()
-//
-//     }
-// }
 
 #[no_mangle]
 extern "C" fn points_label(vec_of_points_ptr: *mut f32, arr_size: usize, arr_dimension: usize) -> *mut f32{
@@ -108,75 +87,67 @@ extern "C" fn generate_random_w(dimension: usize) -> *mut f32 {
 
 }
 
+
 #[no_mangle]
-extern "C" fn linear_model_training(w_ptr: *mut f32, labels_ptr : *mut f32, vec_of_points_ptr: *mut f32, arr_size: usize, arr_dimension: usize) -> *mut f32 {
+pub extern "C" fn create_linear_model(arr: *mut i32, arr_len: i32, dimension: usize) -> *mut MyLinearModel {
+    let model = Box::new(MyLinearModel {
+        w: generate_random_w(dimension),
+    });
+
+    let leaked = Box::leak(model);
+    leaked
+
+}
+
+#[no_mangle]
+extern "C" fn train_linear_model(model: *mut MyLinearModel, labels_ptr : *mut f32, vec_of_points_ptr: *mut f32, arr_size: usize, arr_dimension: usize, learning_rate: f32) -> *mut MyLinearModel {
     unsafe {
-        use rand::Rng;
-        // println!("w_ptr {:?}", w_ptr);
-        // println!("labels_ptr {:?}", labels_ptr);
-        // println!("vec_of_points_ptr{:?}", vec_of_points_ptr);
-
-
         let vec_of_points = Vec::from_raw_parts(vec_of_points_ptr,
                                                 arr_size*arr_dimension,
                                                 arr_size*arr_dimension);
+
         let labels = Vec::from_raw_parts(labels_ptr,
                                                 arr_size,
                                                 arr_size);
 
         let mut w = Vec::from_raw_parts(
-            w_ptr, arr_dimension + 1, arr_dimension +1
+            model.w, arr_dimension + 1, arr_dimension +1
         );
 
         let mut rng = rand::thread_rng();
-        //
-        // println!("w {:?}\n\n", w);
-        // println!("labels {:?}\n\n", labels);
-        // println!("vec_of_points{:?}\n\n", vec_of_points);
 
-
-        //println!("w: {:?}",w);
-        let learning_rate: f32 = 0.00001;
         for _ in 0..100 {
             let k: usize = rng.gen_range(0..arr_size);
-            //println!("k :{:?}",k);
             let y_k: f32 = labels[k];
-            // println!("y_k: {:?}",y_k);
             let mut x_k: Vec<f32> = Vec::with_capacity(arr_dimension + 1);
             x_k.push(1f32);
             for i in 0..arr_dimension {
                 x_k.push(vec_of_points[k*arr_dimension+i]);
             }
-            // println!("x_k: {:?}",x_k);
             let mut signal: f32 = 0f32;
             for i in 0..arr_dimension + 1 {
                 signal += w[i] * x_k[i];
             }
-            // println!("signal: {:?}",signal);
             let mut g_x_k: f32 = 0.0;
             if signal >= 0f32 {
                 g_x_k = 1f32;
             }
-            // println!("g_x_k: {:?}",g_x_k);
             for i in 0..arr_dimension + 1 {
                 w[i] += learning_rate * (y_k - g_x_k) * x_k[i];
             }
-            // println!("w: {:?}",w);
         }
-        // println!("value of W{:?}\n", w);
-        // println!("this is a test");
+
+
         let arr_slice = w.leak();
-        // println!("Another one -dj khaled");
-        arr_slice.as_mut_ptr()
-        // println!("{:?}", mlkjhg);
+        model.w = arr_slice.as_mut_ptr();
+        model
     }
 }
 
-//
-// #[no_mangle]
-// extern "C" fn trained_model(number_of_points: usize) -> Vec<f32>{
-//     let points = points_array(number_of_points);
-//     let label_points = points_label(&points);
-//
-//     linear_model_training(&label_points, &points)
-// }
+#[no_mangle]
+extern "C" fn delete_linear_model(model: *mut MyLinearModel) {
+    unsafe {
+        Box::from_raw(model);
+    }
+}
+

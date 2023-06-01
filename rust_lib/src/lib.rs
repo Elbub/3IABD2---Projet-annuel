@@ -144,10 +144,19 @@ extern "C" fn train_linear_model(model: *mut MyLinearModel, labels_ptr : *mut f3
     }
 }
 
+
+#[no_mangle]
+extern "C" fn predict_linear_model(model: *mut MyLinearModel, sample_inputs: *const f32, arr_dimension: usize) -> *mut f32{
+
+    // TODO Predict
+    let fake_output = vec![1.0f32];
+    fake_output.leak().as_mut_ptr()
+}
+
 #[no_mangle]
 extern "C" fn delete_linear_model(model: *mut MyLinearModel) {
     unsafe {
-        Box::from_raw(model);
-    }
+        Box::from_raw(model)
+    };
 }
 

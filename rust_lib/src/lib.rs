@@ -122,12 +122,18 @@ extern "C" fn predict_linear_model(vec_to_predict_ptr: *const f32, trained_model
         let vec_to_predict = std::slice::from_raw_parts(vec_to_predict_ptr,
                                                        arr_size*arr_dimension);
 
+        println!("{}",vec_to_predict.len());
+
         let trained_model = std::slice::from_raw_parts(trained_model_ptr, arr_dimension + 1);
 
         let mut predicted_labels = Vec::with_capacity(arr_size);
 
-        for vector in vec_to_predict {
-            if vector[0] * trained_model[1] + vector[1] * trained_model[2] + vector[2] * trained_model[3] + trained_model[0] >= 0 {
+        for i in 0..arr_size {
+            let mut vec_of_coordinates = Vec::with_capacity(arr_dimension);
+            for j in 0..arr_dimension{
+                vec_of_coordinates.push(vec_to_predict[i*arr_dimension+j]);
+            }
+            if vec_of_coordinates[0] * trained_model[1] + vec_of_coordinates[1] * trained_model[2] + vec_of_coordinates[2] * trained_model[3] + trained_model[0] >= 0.0 {
                 predicted_labels.push(1.0);
             } else {
                 predicted_labels.push(0.0);

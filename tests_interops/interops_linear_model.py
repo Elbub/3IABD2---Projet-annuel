@@ -1,6 +1,7 @@
 import ctypes
 import _ctypes
 import numpy as np
+import random
 
 my_lib = ctypes.CDLL(r"..\rust_lib\target\debug\rust_lib.dll")
 
@@ -104,10 +105,52 @@ trained_linear_model = np.ctypeslib.as_array(
     linear_model_training_ptr, ((dimension + 1),)
 )
 print(trained_linear_model)
+# print("FFFFFFFFFFFFFFFFFFFFFF")
+# print(len(trained_linear_model))
+
+my_lib.predict_linear_model.argtypes = [
+    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(ctypes.c_float),
+    ctypes.c_int32,
+    ctypes.c_int32,
+]
+
+my_lib.predict_linear_model.restype = ctypes.POINTER(ctypes.c_float)
+
+LP_c_float = ctypes.POINTER(ctypes.c_float)
+
+arr_to_predict = []
+
+for i in range(3000):
+    arr_to_predict.append(random.random())
+# print("this is arr_to_predict\n")
+# print(len(arr_to_predict))
+
+arr_to_predict_c = (ctypes.c_float * len(arr_to_predict))(*arr_to_predict)
+arr_to_predict_c_ptr = ctypes.cast(arr_to_predict_c, LP_c_float)
+
+predict_linear_model_ptr = my_lib.predict_linear_model(
+    arr_to_predict_c_ptr,
+    # arr_to_predict.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
+    linear_model_training_ptr,
+    1000,
+    dimension,
+)
+
+predict_linear_model = np.ctypeslib.as_array(predict_linear_model_ptr, (1000,))
+
+print(len(predict_linear_model))
+
+print(predict_linear_model)
 
 my_lib.delete_float_array(native_pointer, (n * dimension))
 my_lib.delete_float_array(w_array_ptr, (dimension + 1))
 my_lib.delete_float_array(native_label_pointer, n)
+# TO DO: Problème lors du delete de linear_model_training_ptr
+# my_lib.delete_float_array(linear_model_training_ptr, (dimension + 1))
+my_lib.delete_float_array(predict_linear_model_ptr, n)
 del native_pointer
 del w_array_ptr
 del native_label_pointer
+del linear_model_training_ptr
+del predict_linear_model_ptr

@@ -1,3 +1,4 @@
+mod multyLayerPerceptron;
 
 #[no_mangle]
 pub extern "C" fn points_array(number_of_points: usize, dimension: usize) -> *mut f32{

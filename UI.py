@@ -176,12 +176,12 @@ def fonction_principale():
    canvas.rowconfigure(0, weight=1)
    canvas.columnconfigure(0, weight=1)
    
-   bouton_de_demarrage_du_test=Button(cadre_interne, text = "Pointless button")
-   bouton_de_lancement_de_l_enregistrement=Button(cadre_interne, text="Pointless button")
-   bouton_de_mise_en_tension_rapide=Button(cadre_interne, text="Disguised mine turtle")
+   bouton_de_demarrage_du_test=Button(cadre_interne, text = "Train MLP")
+   bouton_de_lancement_de_l_enregistrement=Button(cadre_interne, text="Validate MLP")
+   bouton_de_mise_en_tension_rapide=Button(cadre_interne, text="Test MLP")
    # bouton_de_mise_en_tension_lente=Button(cadre_interne, text="Mise en tension lente")#, command = mise_en_tension_lente)
    # bouton_de_retour_en_position_initiale=Button(cadre_interne, text="Retour en position 0")#, command = retour_en_position_initiale)
-   bouton_d_arret_de_crappy=Button(cadre_interne, text='Pause', command=gros_bouton_rouge,bg='red')
+   bouton_d_arret_de_crappy=Button(cadre_interne, text='Pause', command=gros_bouton_rouge)#,bg='red')
    bouton_enregistrer_et_quitter=Button(cadre_interne, text='Quitter et enregistrer', command=enregistrer_et_quitter)
    
    
@@ -195,7 +195,7 @@ def fonction_principale():
    # mise_a_0_btn.config(image=img3)
    img6 = PhotoImage(file= DOSSIER_CONFIG_ET_CONSIGNES + "icone_play.png")
    bouton_de_demarrage_du_test.config(image=img6)
-   img7 = PhotoImage(file= DOSSIER_CONFIG_ET_CONSIGNES + "icone_stop.png")
+   img7 = PhotoImage(file= DOSSIER_CONFIG_ET_CONSIGNES + "loss.png")
    bouton_d_arret_de_crappy.config(image=img7)
    # img8 = PhotoImage(file= DOSSIER_CONFIG_ET_CONSIGNES + "icone_tension.png")
    

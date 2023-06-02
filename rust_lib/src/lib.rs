@@ -76,7 +76,7 @@ extern "C" fn generate_random_w(dimension: usize) -> *mut f32 {
 }
 
 #[no_mangle]
-extern "C" fn linear_model_training(w_ptr: *mut f32, labels_ptr : *mut f32, vec_of_points_ptr: *mut f32, arr_size: usize, arr_dimension: usize, learning_rate: f32) -> *mut f32 {
+extern "C" fn linear_model_training(w_ptr: *mut f32, labels_ptr : *mut f32, vec_of_points_ptr: *mut f32, arr_size: usize, arr_dimension: usize, learning_rate: f32, epoch: usize) -> *mut f32 {
     unsafe {
         use rand::Rng;
         let vec_of_points = std::slice::from_raw_parts(vec_of_points_ptr,
@@ -89,9 +89,7 @@ extern "C" fn linear_model_training(w_ptr: *mut f32, labels_ptr : *mut f32, vec_
 
         let mut rng = rand::thread_rng();
 
-
-        // let learning_rate: f32 = 0.00001;
-        for _ in 0..100 {
+        for _ in 0..epoch {
             let k: usize = rng.gen_range(0..arr_size);
 
             let y_k: f32 = labels[k];
@@ -99,7 +97,6 @@ extern "C" fn linear_model_training(w_ptr: *mut f32, labels_ptr : *mut f32, vec_
             let mut x_k: Vec<f32> = Vec::with_capacity(arr_dimension + 1);
             x_k.push(1f32);
             for i in 0..arr_dimension {
-                let mut value = vec_of_points[k*arr_dimension+i];
                 x_k.push(vec_of_points[k*arr_dimension+i]);
             }
             let mut signal: f32 = 0f32;
@@ -114,7 +111,6 @@ extern "C" fn linear_model_training(w_ptr: *mut f32, labels_ptr : *mut f32, vec_
                 w[i] += learning_rate * (y_k - g_x_k) * x_k[i];
             }
         }
-        println!("value of W{:?}\n", w);
         let arr_slice = w.leak();
         arr_slice.as_mut_ptr()
     }

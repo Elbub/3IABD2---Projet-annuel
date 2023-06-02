@@ -31,10 +31,12 @@ my_lib.linear_model_training.argtypes = [
     ctypes.c_int32,
     ctypes.c_int32,
     ctypes.c_float,
+    ctypes.c_int32,
 ]
+
 my_lib.linear_model_training.restype = ctypes.POINTER(ctypes.c_float)
 
-n = 5
+n = 200
 dimension = 3
 native_pointer = my_lib.points_array(n, dimension)
 
@@ -87,8 +89,15 @@ w_array = np.ctypeslib.as_array(w_array_ptr, ((dimension + 1),))
 print(f"this is from generate_random_w :{w_array}")
 
 learning_rate = 0.001
+epoch = 100_000
 linear_model_training_ptr = my_lib.linear_model_training(
-    w_array_ptr, native_label_pointer, native_pointer, n, dimension, learning_rate
+    w_array_ptr,
+    native_label_pointer,
+    native_pointer,
+    n,
+    dimension,
+    learning_rate,
+    epoch,
 )
 
 trained_linear_model = np.ctypeslib.as_array(

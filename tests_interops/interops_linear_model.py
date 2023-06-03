@@ -1,7 +1,8 @@
 import ctypes
-import _ctypes
 import numpy as np
 import random
+import matplotlib.pyplot as plt
+
 
 my_lib = ctypes.CDLL(r"..\rust_lib\target\debug\rust_lib.dll")
 

@@ -1,4 +1,4 @@
-mod multyLayerPerceptron;
+//mod multyLayerPerceptron;
 
 #[no_mangle]
 pub extern "C" fn points_array(number_of_points: usize, dimension: usize) -> *mut f32{
@@ -71,7 +71,6 @@ extern "C" fn generate_random_w(dimension: usize) -> *mut f32 {
     for _ in 0..number_of_parameters + 1 {
         w.push(rng.gen_range(0f32..1f32)); // initialisation aléatoire entre 0 et 1
     }
-
     let arr_slice = w.leak();
     arr_slice.as_mut_ptr()
 }
@@ -104,7 +103,7 @@ extern "C" fn linear_model_training(w_ptr: *mut f32, labels_ptr : *mut f32, vec_
             for i in 0..arr_dimension + 1 {
                 signal += w[i] * x_k[i];
             }
-            let mut g_x_k: f32 = 0.0;
+            let mut g_x_k: f32 = -1.0; // on avait 0.0 pour des cas 0 ou 1 en output
             if signal >= 0f32 {
                 g_x_k = 1f32;
             }

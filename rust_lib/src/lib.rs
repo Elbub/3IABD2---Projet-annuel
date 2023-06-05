@@ -1,4 +1,4 @@
-mod multyLayerPerceptron;
+//mod multyLayerPerceptron;
 
 #[no_mangle]
 pub extern "C" fn points_array(number_of_points: usize, dimension: usize) -> *mut f32{
@@ -71,13 +71,12 @@ extern "C" fn generate_random_w(dimension: usize) -> *mut f32 {
     for _ in 0..number_of_parameters + 1 {
         w.push(rng.gen_range(0f32..1f32)); // initialisation aléatoire entre 0 et 1
     }
-
     let arr_slice = w.leak();
     arr_slice.as_mut_ptr()
 }
 
 #[no_mangle]
-extern "C" fn linear_model_training(w_ptr: *mut f32, labels_ptr : *mut f32, vec_of_points_ptr: *mut f32, arr_size: usize, arr_dimension: usize, learning_rate: f32, epoch: usize) -> *mut f32 {
+extern "C" fn linear_model_training(w_ptr: *mut f32, labels_ptr : *mut f32, vec_of_points_ptr: *mut f32, arr_size: usize, arr_dimension: usize, learning_rate: f32, epoch: usize, is_label_list: bool) -> *mut f32 {
     unsafe {
         use rand::Rng;
         let vec_of_points = std::slice::from_raw_parts(vec_of_points_ptr,
@@ -90,26 +89,54 @@ extern "C" fn linear_model_training(w_ptr: *mut f32, labels_ptr : *mut f32, vec_
 
         let mut rng = rand::thread_rng();
 
-        for _ in 0..epoch {
-            let k: usize = rng.gen_range(0..arr_size);
+        if is_label_list == False {
+            for _ in 0..epoch {
+                let k: usize = rng.gen_range(0..arr_size);
 
-            let y_k: f32 = labels[k];
+                let y_k: f32 = labels[k];
 
-            let mut x_k: Vec<f32> = Vec::with_capacity(arr_dimension + 1);
-            x_k.push(1f32);
-            for i in 0..arr_dimension {
-                x_k.push(vec_of_points[k*arr_dimension+i]);
+                let mut x_k: Vec<f32> = Vec::with_capacity(arr_dimension + 1);
+                x_k.push(1f32);
+                for i in 0..arr_dimension {
+                    x_k.push(vec_of_points[k * arr_dimension + i]);
+                }
+                let mut signal: f32 = 0f32;
+                for i in 0..arr_dimension + 1 {
+                    signal += w[i] * x_k[i];
+                }
+                let mut g_x_k: f32 = -1.0; // on avait 0.0 pour des cas 0 ou 1 en output
+                if signal >= 0f32 {
+                    g_x_k = 1f32;
+                }
+                for i in 0..arr_dimension + 1 {
+                    w[i] += learning_rate * (y_k - g_x_k) * x_k[i];
+                }
             }
-            let mut signal: f32 = 0f32;
-            for i in 0..arr_dimension + 1 {
-                signal += w[i] * x_k[i];
-            }
-            let mut g_x_k: f32 = 0.0;
-            if signal >= 0f32 {
-                g_x_k = 1f32;
-            }
-            for i in 0..arr_dimension + 1 {
-                w[i] += learning_rate * (y_k - g_x_k) * x_k[i];
+        } else {
+            for _ in 0..epoch {
+                let k: usize = rng.gen_range(0..(arr_size/3)) * 3;
+
+                let mut y_k: Vec<f32> = Vec::with_capacity(3);
+                for i in 0..3 {
+                    y_k.push(labels[k+i]);
+                }
+
+                let mut x_k: Vec<f32> = Vec::with_capacity(arr_dimension + 1);
+                x_k.push(1f32);
+                for i in 0..arr_dimension {
+                    x_k.push(vec_of_points[k * arr_dimension + i]);
+                }
+                let mut signal: f32 = 0f32;
+                for i in 0..arr_dimension + 1 {
+                    signal += w[i] * x_k[i];
+                }
+                let mut g_x_k: f32 = -1.0; // on avait 0.0 pour des cas 0 ou 1 en output
+                if signal >= 0f32 {
+                    g_x_k = 1f32;
+                }
+                for i in 0..arr_dimension + 1 {
+                    w[i] += learning_rate * (y_k - g_x_k) * x_k[i];
+                }
             }
         }
         let arr_slice = w.leak();
@@ -134,8 +161,9 @@ extern "C" fn predict_linear_model(vec_to_predict_ptr: *const f32, trained_model
             for j in 0..arr_dimension{
                 vec_of_coordinates.push(vec_to_predict[i*arr_dimension+j]);
             }
-            if vec_of_coordinates[0] * trained_model[1] + vec_of_coordinates[1] * trained_model[2] + vec_of_coordinates[2] * trained_model[3] + trained_model[0] >= 0.0 {
-                predicted_labels.push(1.0);
+            if vec_of_coordinates[0] * trained_model[1] + vec_of_coordinates[1] * trained_model[2] + trained_model[0] >= 0.0 {
+            // if vec_of_coordinates[0] * trained_model[1] + vec_of_coordinates[1] * trained_model[2] + vec_of_coordinates[2] * trained_model[3] + trained_model[0] >= 0.0 {
+                    predicted_labels.push(1.0);
             } else {
                 predicted_labels.push(0.0);
             }

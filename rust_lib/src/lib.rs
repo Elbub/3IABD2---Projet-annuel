@@ -104,7 +104,7 @@ extern "C" fn linear_model_training(w_ptr: *mut f32, labels_ptr : *mut f32, vec_
             for i in 0..arr_dimension + 1 {
                 signal += w[i] * x_k[i];
             }
-            let mut g_x_k: f32 = -1.0; // on avait 0.0 pour des cas 0 ou 1 en output
+            let mut g_x_k: f32 = 0.0; // on avait 0.0 pour des cas 0 ou 1 en output
             if signal >= 0f32 {
                 g_x_k = 1f32;
             }

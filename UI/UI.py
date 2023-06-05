@@ -7,18 +7,12 @@ from os.path import normpath
 ### Interface graphique
 from tkinter import *
 from tkinter import ttk
-
-# from tkinter import tix # Obsolète, à remplacer
 from tkinter.messagebox import *
 from tkinter.filedialog import *
 from screeninfo import get_monitors
 
 ### Divers
-from numpy import pi
-import time
-import datetime
 import re
-from threading import Event, Thread
 
 ### Debug
 import sys
@@ -35,7 +29,6 @@ def _bound_to_mousewheel(widget, event):
     widget.bind_all("<MouseWheel>", lambda e: _on_mousewheel(widget, e))
 
 
-# V
 def _unbound_to_mousewheel(widget, event):
     """FR : Délie le défilement de la fenêtre à la molette de la souris lorsque le curseur sort
     de cette fenêtre.
@@ -45,7 +38,6 @@ def _unbound_to_mousewheel(widget, event):
     widget.unbind_all("<MouseWheel>")
 
 
-# V
 def _on_mousewheel(widget, event):
     """FR : Fait défiler la fenêtre avec la molette.
 
@@ -53,10 +45,7 @@ def _on_mousewheel(widget, event):
     widget.yview_scroll(int(-1 * (event.delta / 80)), "units")
 
 
-# V
-
-
-def lecture_donnee(file_name):
+def lecture_des_donnee_de_config(file_name):
     """FR : Renvoie la dernière entrée du fichier texte indiqué. Les fichiers utilisant
     cette fonction ne doivent être modifiés que par les fonctions de cette application.
 
@@ -68,10 +57,9 @@ def lecture_donnee(file_name):
     return data
 
 
-# V
 # Chemins des fichiers
-DOSSIER_CONFIG_ET_CONSIGNES = lecture_donnee("dossier_config_et_consignes.txt") + "/"
-DOSSIER_ENREGISTREMENTS = lecture_donnee("dossier_enregistrements.txt") + "/"
+DOSSIER_CONFIG_ET_CONSIGNES = lecture_des_donnee_de_config("UI/dossier_config_et_consignes.txt") + "/"
+DOSSIER_ENREGISTREMENTS = lecture_des_donnee_de_config("UI/dossier_enregistrements.txt") + "/"
 # print (DOSSIER_ENREGISTREMENTS)
 
 
@@ -97,7 +85,7 @@ def fonction_principale():
             # crappy_launch_thread._stop()
             exit()
 
-        # V
+        
         def relancer_un_essai():
             """FR : Enregistre et renvoie l'utilisateur sur la fenêtre de saisie des
                conditions du test.
@@ -112,7 +100,7 @@ def fonction_principale():
             fenetre_de_sortie_du_programme.destroy()
             fenetre_principale.destroy()
 
-        # V
+        
         fenetre_de_sortie_du_programme = Toplevel(fenetre_principale)
         fenetre_de_sortie_du_programme.lift()
 
@@ -212,6 +200,61 @@ def fonction_principale():
         ).grid(row=5, column=2, padx=10, pady=10)
         fenetre_de_choix_des_doc_a_conserver.wait_window()
 
+
+    # The following is a bunch of function that will be called upon pressing the UI's buttons.
+    # Those are just skeletons, as of now. For each, we must :
+    # - create adequate variable
+    # - call the rust function
+    # - delete the pointers if now needed anymore
+    # - show some stuff, but necessarily return anything
+
+    def generate_linear_model():
+        pass
+
+
+    def train_linear_model():
+        pass
+    
+    
+    def test_linear_model():
+        pass
+
+
+    def save_linear_model():
+        pass
+
+
+    def load_linear_model():
+        pass
+
+
+    def generate_mlp():
+        pass
+
+
+    def train_mlp():
+        pass
+    
+    
+    def test_mlp():
+        pass
+
+
+    def save_mlp():
+        pass
+    
+    
+    def load_mlp():
+        pass
+
+
+    
+
+    
+
+
+
+
     fenetre_principale = Tk()
     fenetre_principale.title("wsh cé tro 1 bn prgrm")
     fenetre_principale.protocol("WM_DELETE_WINDOW", enregistrer_et_quitter)
@@ -299,6 +342,8 @@ def fonction_principale():
     bouton_enregistrer.grid(row=1, column=14, padx=5, pady=5)
 
     fenetre_principale.mainloop()
+
+    return fonction_principale()
 
 
 if __name__ == "__main__":

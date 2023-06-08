@@ -2,3 +2,4 @@ numpy
 matplotlib
 screeninfo
 environs
+Pillow

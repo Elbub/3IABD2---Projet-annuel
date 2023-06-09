@@ -143,7 +143,7 @@ extern "C" fn linear_model_training(w_ptr: *mut f32, labels_ptr : *mut f32, vec_
 }
 
 #[no_mangle]
-extern "C" fn find_w_lineard_regression(x_ptr: *mut f32, y_ptr: *mut f32, nombre_lignes_x_et_y: usize, nombre_colonnes_x: usize, nombre_colonnes_y: usize) -> *mut f32 {
+extern "C" fn find_w_linear_regression(x_ptr: *mut f32, y_ptr: *mut f32, nombre_lignes_x_et_y: usize, nombre_colonnes_x: usize, nombre_colonnes_y: usize) -> *mut f32 {
     unsafe {
         // let mut w = Vec::with_capacity(nombre_lignes_x_et_y);
         use nalgebra::*;
@@ -152,36 +152,40 @@ extern "C" fn find_w_lineard_regression(x_ptr: *mut f32, y_ptr: *mut f32, nombre
 
         let y_vect = std::slice::from_raw_parts(y_ptr, nombre_lignes_x_et_y * nombre_colonnes_y);
 
-        let mut x_mat = DMatrix::zeros(nombre_lignes_x_et_y, nombre_colonnes_x);
-        let mut y_mat = DMatrix::zeros(nombre_lignes_x_et_y, nombre_colonnes_y);
+
+        let mut x_mat:DMatrix<f32> = DMatrix::zeros(nombre_lignes_x_et_y, nombre_colonnes_x);
+        let mut y_mat:DMatrix<f32> = DMatrix::zeros(nombre_lignes_x_et_y, nombre_colonnes_y);
+
 
         for i in 0..nombre_lignes_x_et_y {
             for j in 0..nombre_colonnes_x {
-                x_mat[(i, j)] = x_vect[i * nombre_colonnes_x + j] as f32;
+                x_mat[(i, j)] = x_vect[i * nombre_colonnes_x + j];
             }
         }
 
         for i in 0..nombre_lignes_x_et_y {
             for j in 0..nombre_colonnes_y {
-                y_mat[(i, j)] = y_vect[i * nombre_colonnes_y + j] as f32;
+                y_mat[(i, j)] = y_vect[i * nombre_colonnes_y + j];
             }
         }
 
 
-        let x_transpose = x_mat.transpose();
+        let x_transpose:DMatrix<f32> = x_mat.transpose();
 
-        let x_t_mult_x = x_transpose * x_mat.clone();
+        let x_t_mult_x = x_mat.clone() * x_transpose;
 
         let inv_x_t_x = x_t_mult_x.try_inverse();
 
         let new_x_trans = x_mat.transpose();
 
+
         let inv_times_x_t = match inv_x_t_x {
-            Some(inv) => inv * new_x_trans,
+            Some(inv) => new_x_trans * inv,
             None => panic!("Non inversible"),
         };
 
-        let mut result_matrix = inv_times_x_t * y_mat;
+
+        let result_matrix = inv_times_x_t * y_mat;
 
         let w: Vec<_> = result_matrix.iter().cloned().collect();
 

@@ -2,3 +2,5 @@ numpy
 matplotlib
 screeninfo
 environs
+Pillow
+google-search-results

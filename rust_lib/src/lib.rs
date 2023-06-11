@@ -143,51 +143,65 @@ extern "C" fn linear_model_training(w_ptr: *mut f32, labels_ptr : *mut f32, vec_
 }
 
 #[no_mangle]
-extern "C" fn find_w_linear_regression(x_ptr: *mut f32, y_ptr: *mut f32, nombre_lignes_x_et_y: usize, nombre_colonnes_x: usize, nombre_colonnes_y: usize) -> *mut f32 {
+extern "C" fn find_w_linear_regression(x_ptr: *mut f32, y_ptr: *mut f32, nombre_lignes_x: usize, nombre_colonnes_x: usize, nombre_lignes_y:usize, nombre_colonnes_y: usize) -> *mut f32 {
     unsafe {
         // let mut w = Vec::with_capacity(nombre_lignes_x_et_y);
         use nalgebra::*;
 
-        let x_vect = std::slice::from_raw_parts(x_ptr, nombre_lignes_x_et_y * nombre_colonnes_x);
+        let x_vect = std::slice::from_raw_parts(x_ptr, nombre_lignes_x * nombre_colonnes_x);
 
-        let y_vect = std::slice::from_raw_parts(y_ptr, nombre_lignes_x_et_y * nombre_colonnes_y);
-
-
-        let mut x_mat:DMatrix<f32> = DMatrix::zeros(nombre_lignes_x_et_y, nombre_colonnes_x);
-        let mut y_mat:DMatrix<f32> = DMatrix::zeros(nombre_lignes_x_et_y, nombre_colonnes_y);
+        let y_vect = std::slice::from_raw_parts(y_ptr, nombre_lignes_y * nombre_colonnes_y);
 
 
-        for i in 0..nombre_lignes_x_et_y {
+        let mut x_mat:DMatrix<f32> = DMatrix::zeros(nombre_lignes_x, nombre_colonnes_x);
+        let mut y_mat:DMatrix<f32> = DMatrix::zeros(nombre_lignes_y, nombre_colonnes_y);
+
+        for i in 0..nombre_lignes_x {
             for j in 0..nombre_colonnes_x {
                 x_mat[(i, j)] = x_vect[i * nombre_colonnes_x + j];
             }
         }
 
-        for i in 0..nombre_lignes_x_et_y {
+        for i in 0..nombre_lignes_y {
             for j in 0..nombre_colonnes_y {
                 y_mat[(i, j)] = y_vect[i * nombre_colonnes_y + j];
             }
         }
 
+        println!("matrice x = {x_mat}");
+        println!("matrice y = {y_mat}");
 
-        let x_transpose:DMatrix<f32> = x_mat.transpose();
+        let x_transpose:DMatrix<f32> = x_mat.clone().transpose();
 
-        let x_t_mult_x = x_mat.clone() * x_transpose;
+        println!("transposée de x = {x_transpose}");
+
+        // let x_t_mult_x = x_mat.clone() * x_transpose;
+        let x_t_mult_x = x_transpose.clone() * x_mat.clone();
+
+        println!("x transposée fois x = {x_t_mult_x}");
 
         let inv_x_t_x = x_t_mult_x.try_inverse();
 
-        let new_x_trans = x_mat.transpose();
+        // let new_x_trans = x_mat.transpose();
 
 
         let inv_times_x_t = match inv_x_t_x {
-            Some(inv) => new_x_trans * inv,
+            Some(inv) => inv * x_transpose.clone(),
             None => panic!("Non inversible"),
         };
 
 
         let result_matrix = inv_times_x_t * y_mat;
 
-        let w: Vec<_> = result_matrix.iter().cloned().collect();
+        let mut w: Vec<f32> = Vec::with_capacity(nombre_colonnes_x * nombre_colonnes_y);
+
+        for i in 0..nombre_colonnes_x {
+            for j in 0..nombre_colonnes_y {
+                w.push(result_matrix[(i,j)]);
+                println!("{:?}",result_matrix[(i,j)]);
+            }
+        }
+
 
         let arr_slice = w.leak();
         arr_slice.as_mut_ptr()
@@ -223,6 +237,40 @@ extern "C" fn predict_linear_model(vec_to_predict_ptr: *const f32, trained_model
     }
 }
 
+#[no_mangle]
+pub extern "C" fn x_transpose_times_x(x_ptr: *mut f32, longueur_x: usize, colonnes_x: usize) -> *mut f32 {
+    unsafe {
+        use nalgebra::*;
+        let x_vect = std::slice::from_raw_parts(x_ptr, longueur_x * colonnes_x);
+        let mut x_mat:DMatrix<f32> = DMatrix::zeros(longueur_x, colonnes_x);
+
+        for i in 0..(longueur_x) {
+            for j in 0..(colonnes_x) {
+                x_mat[(i, j)] = x_vect[i * colonnes_x + j];
+            }
+        }
+
+        println!("{:?}",x_mat);
+        let x_transpose:DMatrix<f32> = x_mat.clone().transpose();
+        println!("{:?}",x_transpose);
+        let x_t_mult_x = x_transpose.clone() * x_mat.clone();
+        println!("{:?}",x_t_mult_x);
+
+        let mut w: Vec<f32> = Vec::with_capacity(colonnes_x * colonnes_x);
+
+        for i in 0..colonnes_x {
+            for j in 0..colonnes_x {
+                w.push(x_t_mult_x[(i,j)]);
+                println!("{:?}",x_t_mult_x[(i,j)]);
+            }
+        }
+
+        // let w: Vec<_> = x_mat.iter().cloned().collect();
+        let arr_slice = w.leak();
+        println!("coucou");
+        arr_slice.as_mut_ptr()
+    }
+}
 //
 // #[no_mangle]
 // extern "C" fn trained_model(number_of_points: usize) -> Vec<f32>{

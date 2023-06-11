@@ -147,6 +147,7 @@ extern "C" fn find_w_linear_regression(x_ptr: *mut f32, y_ptr: *mut f32, nombre_
     unsafe {
         // let mut w = Vec::with_capacity(nombre_lignes_x_et_y);
         use nalgebra::*;
+        use rand::Rng;
 
         let x_vect = std::slice::from_raw_parts(x_ptr, nombre_lignes_x * nombre_colonnes_x);
 
@@ -176,9 +177,22 @@ extern "C" fn find_w_linear_regression(x_ptr: *mut f32, y_ptr: *mut f32, nombre_
         println!("transposée de x = {x_transpose}");
 
         // let x_t_mult_x = x_mat.clone() * x_transpose;
-        let x_t_mult_x = x_transpose.clone() * x_mat.clone();
+        let mut x_t_mult_x = x_transpose.clone() * x_mat.clone();
 
         println!("x transposée fois x = {x_t_mult_x}");
+
+        let det = x_t_mult_x.clone().determinant();
+
+        if det == 0.0{
+            let mut rng = rand::thread_rng();
+            for i in 0..nombre_colonnes_x {
+                for j in 0..nombre_colonnes_x {
+                    x_t_mult_x[(i,j)] = x_t_mult_x[(i,j)] + rng.gen_range(-0.005..0.005);
+                }
+            }
+        }
+
+
 
         let inv_x_t_x = x_t_mult_x.try_inverse();
 

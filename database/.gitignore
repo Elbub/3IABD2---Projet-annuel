@@ -1,0 +1,11 @@
+!.gitignore
+
+photos_brutes/amerique_sud/*
+photos_brutes/asie_sud_est/*
+photos_brutes/rome_grece/*
+
+clean_dataset/Sud_americaine/*
+clean_dataset/Asie_sud_Est/*
+clean_dataset/Greco-Romaine/*
+
+data/*

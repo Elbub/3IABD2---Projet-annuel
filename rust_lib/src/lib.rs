@@ -151,15 +151,20 @@ extern "C" fn find_w_linear_regression(x_ptr: *mut f32, y_ptr: *mut f32, nombre_
 
         let x_vect = std::slice::from_raw_parts(x_ptr, nombre_lignes_x * nombre_colonnes_x);
 
+
         let y_vect = std::slice::from_raw_parts(y_ptr, nombre_lignes_y * nombre_colonnes_y);
 
 
-        let mut x_mat:DMatrix<f32> = DMatrix::zeros(nombre_lignes_x, nombre_colonnes_x);
+        let mut x_mat:DMatrix<f32> = DMatrix::zeros(nombre_lignes_x, nombre_colonnes_x + 1);
         let mut y_mat:DMatrix<f32> = DMatrix::zeros(nombre_lignes_y, nombre_colonnes_y);
 
         for i in 0..nombre_lignes_x {
-            for j in 0..nombre_colonnes_x {
-                x_mat[(i, j)] = x_vect[i * nombre_colonnes_x + j];
+            for j in 0..(nombre_colonnes_x+1) {
+                if j == 0 {
+                    x_mat[(i,j)] = 1.0;
+                } else {
+                    x_mat[(i, j)] = x_vect[i * nombre_colonnes_x + j - 1];
+                }
             }
         }
 
@@ -185,8 +190,8 @@ extern "C" fn find_w_linear_regression(x_ptr: *mut f32, y_ptr: *mut f32, nombre_
 
         if det == 0.0{
             let mut rng = rand::thread_rng();
-            for i in 0..nombre_colonnes_x {
-                for j in 0..nombre_colonnes_x {
+            for i in 0..(nombre_colonnes_x+1) {
+                for j in 0..(nombre_colonnes_x+1) {
                     x_t_mult_x[(i,j)] = x_t_mult_x[(i,j)] + rng.gen_range(-0.005..0.005);
                 }
             }
@@ -207,15 +212,14 @@ extern "C" fn find_w_linear_regression(x_ptr: *mut f32, y_ptr: *mut f32, nombre_
 
         let result_matrix = inv_times_x_t * y_mat;
 
-        let mut w: Vec<f32> = Vec::with_capacity(nombre_colonnes_x * nombre_colonnes_y);
+        let mut w: Vec<f32> = Vec::with_capacity(nombre_colonnes_x * nombre_colonnes_y + 1);
 
-        for i in 0..nombre_colonnes_x {
+        for i in 0..nombre_colonnes_x+1 {
             for j in 0..nombre_colonnes_y {
                 w.push(result_matrix[(i,j)]);
                 println!("{:?}",result_matrix[(i,j)]);
             }
         }
-
 
         let arr_slice = w.leak();
         arr_slice.as_mut_ptr()

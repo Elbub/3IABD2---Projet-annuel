@@ -19,12 +19,17 @@ extern "C" fn generate_random_w(layers_ptr: *mut usize, number_of_layers: usize,
         let mut total_number_of_weights = 0;
 
         for l in 0..(number_of_layers - 1) {
-            total_number_of_weights += (layers[l] + 1) * (layers[l + 1] + 1);
+            total_number_of_weights += layers[l] * layers[l + 1];
         }
 
         let mut w: Vec<f32> = Vec::with_capacity(total_number_of_weights);
         for l in 0..(number_of_layers - 1) { // on calcule d'une couche à la suivante, donc on ne prend pas la première.
-            w.push(rng.gen_range(0f32..1f32));
+            for i in 0..layers[l]{
+                w.push(0f32);
+                for j in 1..layers[l + 1]{
+                    w.push(rng.gen_range(-1f32..1f32));
+                }
+            }
         }
 
         let arr_slice = w.leak();
@@ -36,7 +41,7 @@ extern "C" fn generate_random_w(layers_ptr: *mut usize, number_of_layers: usize,
 extern "C" fn multi_layer_perceptron_training(w_ptr: *mut f32,
                                               labels_ptr : *mut f32,
                                               vec_of_points_ptr: *mut f32,
-                                              number_of_elements_and_labels: usize,
+                                              number_of_labelized_elements: usize,
                                               dimension_of_elements: usize,
                                               number_of_classes_to_predict: usize,
                                               learning_rate: f32,
@@ -60,17 +65,18 @@ extern "C" fn multi_layer_perceptron_training(w_ptr: *mut f32,
 
         let mut total_number_of_weights = 0;
         for l in 0..(number_of_layers - 1) {
-            total_number_of_weights += (layers[l] + 1) * (layers[l + 1] + 1);
+            total_number_of_weights += layers[l] * layers[l + 1];
         }
-        let w_param = Vec::from_raw_parts(w_ptr, total_number_of_weights, total_number_of_weights);
+        let w_param = std::slice::from_raw_parts(w_ptr, total_number_of_weights);
 
         let mut w_index:usize = 0;
         let mut w: Vec<Vec<Vec<f32>>> = Vec::with_capacity(number_of_layers);
+        w.push(Vec::from(Vec::new()));
         for l /*layer*/ in 0..(number_of_layers - 1) { // on calcule d'une couche à la suivante, donc on ne prend pas la première.
-            let size_of_w_l = layers[l] + 1;
+            let size_of_w_l = layers[l];
             let mut w_l: Vec<Vec<f32>> = Vec::with_capacity(size_of_w_l);
             for i in 0..size_of_w_l {
-                let size_of_w_l_i = layers[l + 1] + 1;
+                let size_of_w_l_i = layers[l + 1];
                 let mut w_l_i: Vec<f32> = Vec::with_capacity(size_of_w_l_i);
                 for j in 0..size_of_w_l_i {
                     w_index += 1;
@@ -83,21 +89,19 @@ extern "C" fn multi_layer_perceptron_training(w_ptr: *mut f32,
 
 
         let vec_of_points = std::slice::from_raw_parts(vec_of_points_ptr,
-                                                       number_of_elements_and_labels * dimension_of_elements);
+                                                       number_of_labelized_elements * dimension_of_elements);
         let labels = std::slice::from_raw_parts(labels_ptr,
-                                                number_of_elements_and_labels * number_of_classes_to_predict);
+                                                number_of_labelized_elements * number_of_classes_to_predict);
 
         use rand::thread_rng;
         use rand::seq::SliceRandom;
-
-
-        // REFACTOR : TO BE CONTINUED...
+        
 
         for _ in 0..epoch {
-            let mut randomly_ordered_dataset: Vec<usize> = (0..number_of_elements_and_labels).collect();
+            let mut randomly_ordered_dataset: Vec<usize> = (0..number_of_labelized_elements).collect();
             randomly_ordered_dataset.shuffle(&mut thread_rng());
 
-            for element in 0..number_of_elements_and_labels {
+            for element in 0..number_of_labelized_elements {
                 let k: usize = randomly_ordered_dataset[element];
 
                 let mut y_k:Vec<f32> = Vec::with_capacity(number_of_classes_to_predict);
@@ -143,11 +147,12 @@ extern "C" fn multi_layer_perceptron_training(w_ptr: *mut f32,
                 for l in (number_of_layers - 1)..0 {
                     let size_of_delta_l = layers[l];
                     let mut delta_l: Vec<f32> = Vec::with_capacity(size_of_delta_l);
-                    delta_l.push(1f32);
+                    delta_l.push(0f32);
                     for j in 1..size_of_delta_l {
                         let mut delta_l_i = 0f32;
-                        for i in 0..layers[l-1] {
-                            delta_l_i += w[l][i][j] * delta[l-1][i];
+                        for i in 0..layers[l + 1] {
+                            delta_l_i += (w[l + 1][i][j] * delta[l + 1][i]);
+                            (1f32 - x[L][j] * x[L][j]) *;
                         }
                         delta_l.push(delta_l_i.tanh());
                     }

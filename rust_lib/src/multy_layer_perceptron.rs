@@ -101,16 +101,10 @@ extern "C" fn multi_layer_perceptron_training(w_ptr: *mut f32,
             let mut randomly_ordered_dataset: Vec<usize> = (0..number_of_labelized_elements).collect();
             randomly_ordered_dataset.shuffle(&mut thread_rng());
 
-            for element in 0..number_of_labelized_elements {
-                let k: usize = randomly_ordered_dataset[element];
-
-                let mut y_k:Vec<f32> = Vec::with_capacity(number_of_classes_to_predict);
-                for class_number in 0..number_of_classes_to_predict {
-                    y_k.push(labels[k * number_of_classes_to_predict + class_number]);
-                }
+            for k in randomly_ordered_dataset {
 
                 let mut x : Vec<Vec<f32>> = Vec::with_capacity(number_of_layers);
-                let mut delta : Vec<Vec<f32>> = Vec::with_capacity(number_of_layers);
+
                 let size_of_x_0 = layers[0];
                 let mut x_0: Vec<f32> = Vec::with_capacity(size_of_x_0);
                 x_0.push(1f32);
@@ -118,7 +112,18 @@ extern "C" fn multi_layer_perceptron_training(w_ptr: *mut f32,
                     x_0.push(vec_of_points[k * dimension_of_elements + j]);
                 }
                 x.push(x_0);
+
+
+                let mut y_k:Vec<f32> = Vec::with_capacity(number_of_classes_to_predict);
+                for class_number in 0..number_of_classes_to_predict {
+                    y_k.push(labels[k * number_of_classes_to_predict + class_number]);
+                }
+
+
+                let mut delta : Vec<Vec<f32>> = Vec::with_capacity(number_of_layers);
                 delta.push(vec![0f32; size_of_x_0]);
+
+
                 for l in 1..number_of_layers {
                     let size_of_x_l = layers[l];
                     let mut x_l: Vec<f32> = Vec::with_capacity(size_of_x_l);
@@ -134,7 +139,6 @@ extern "C" fn multi_layer_perceptron_training(w_ptr: *mut f32,
                     delta.push(vec![0f32; size_of_x_l]);
                 }
 
-
                 let L = number_of_layers - 1;
                 let size_of_delta_L = layers[L];
                 for j in 1..size_of_delta_L {
@@ -144,43 +148,28 @@ extern "C" fn multi_layer_perceptron_training(w_ptr: *mut f32,
                         delta[L][j] = (1f32 - x[L][j] * x[L][j]) * (x[L][j] - y_k[j]);
                     }
                 }
-                for l in (number_of_layers - 1)..0 {
-                    let size_of_delta_l = layers[l];
-                    let mut delta_l: Vec<f32> = Vec::with_capacity(size_of_delta_l);
-                    delta_l.push(0f32);
-                    for j in 1..size_of_delta_l {
-                        let mut delta_l_i = 0f32;
-                        for i in 0..layers[l + 1] {
-                            delta_l_i += (w[l + 1][i][j] * delta[l + 1][i]);
-                            (1f32 - x[L][j] * x[L][j]) *;
+                for l in number_of_layers..1 {
+                    delta[l - 1][0] = 0f32;
+                    for i in 1..layers[l - 1] {
+                        let mut weighed_sum_of_errors = 0f32;
+                        for j in 0..layers[l] {
+                            weighed_sum_of_errors += w[l][i][j] * delta[l][j];
                         }
-                        delta_l.push(delta_l_i.tanh());
+                        delta[l][i] = (1f32 - x[l - 1][i] * x[l - 1][i]) * weighed_sum_of_errors;
                     }
-                    delta.push(delta_l);
                 }
 
-
-                for l_invert in 0..(number_of_layers - 1) {
-                    let l = number_of_layers - 1 - l_invert;
-                    
-                }
-
-
-                let mut signal: f32 = 0f32;
-                for i in 0..dimension_of_elements + 1 {
-                    signal += w[i] * x_k[i];
-                }
-                let mut g_x_k: f32 = 0.0;
-                if signal >= 0f32 {
-                    g_x_k = 1f32;
-                }
-                for i in 0..dimension_of_elements + 1 {
-                    w[i] += learning_rate * (y_k - g_x_k) * x_k[i];
+                for l in 1..number_of_layers {
+                    for i in 0..layers[l - 1] {
+                        for j in 0..layers[l] {
+                            w[l][i][j] -= learning_rate * x[l - 1][i] * delta[l][j];
+                        }
+                    }
                 }
             }
         }
         let mut w_return = Vec::with_capacity(total_number_of_weights);
-        for l /*layer*/ in 0..(number_of_layers - 1) { // on calcule d'une couche à la suivante, donc on ne prend pas la première.
+        for l /*layer*/ in 1..number_of_layers { // on calcule d'une couche à la suivante, donc on ne prend pas la première.
             for i in 0..layers[l] + 1 {
                 for j in 0..layers[l + 1] + 1 {
                     w_return.push(w[l][i][j]);

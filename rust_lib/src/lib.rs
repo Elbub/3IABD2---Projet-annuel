@@ -295,7 +295,6 @@ extern "C" fn get_number_of_w(layers_ptr: *mut f32, number_of_layers: usize) -> 
         let layers = std::slice::from_raw_parts(layers_ptr, number_of_layers);
         let mut total_number_of_weights = 0.0;
 
-
         for l in 0..(number_of_layers - 1) {
             total_number_of_weights += (layers[l] + 1.0) * layers[l + 1];
         }
@@ -323,23 +322,27 @@ extern "C" fn generate_random_mpl_w(layers_ptr: *mut f32, number_of_layers: usiz
         println!("nbr of weights {:?}", total_number_of_weights);
 
 
-        let mut w: Vec<f32> = Vec::with_capacity(total_number_of_weights as usize);
-        for l in 0..(number_of_layers - 1) { // on calcule d'une couche à la suivante, donc on ne prend pas la première.
-            // 3 -> 0 à 2
-            for _ in 0..layers[l] as i32 + 1{
-                // layers[0] = 2 -> 0 à 2
-                // layers[1] = 2 -> 0 à 2
-                w.push(0f32);
-                // w = [0]
-                for _ in 1..layers[l + 1] as i32 + 1{
-                    // layers[1] = 2 -> 1 à 2
-                    // layers[1] = 2 -> 1 à
-                    w.push(rng.gen_range(-1f32..1f32));
-                    // w = [0, 1]
-                }
-                // w = [0, 1, 0,
-            }
+        let mut w: Vec<f32> = Vec::with_capacity(total_number_of_weights);
+
+        for _ in 0..total_number_of_weights {
+            w.push(rng.gen_range(-1f32..1f32));
         }
+        // for l in 0..(number_of_layers - 1) { // on calcule d'une couche à la suivante, donc on ne prend pas la première.
+        //     // 3 -> 0 à 2
+        //     for _ in 0..layers[l] as i32 + 1{
+        //         // layers[0] = 2 -> 0 à 2
+        //         // layers[1] = 2 -> 0 à 2
+        //         w.push(0f32);
+        //         // w = [0]
+        //         for _ in 1..layers[l + 1] as i32 + 1{
+        //             // layers[1] = 2 -> 1 à 2
+        //             // layers[1] = 2 -> 1 à
+        //             w.push(rng.gen_range(-1f32..1f32));
+        //             // w = [0, 1]
+        //         }
+        //         // w = [0, 1, 0,
+        //     }
+        // }
         println!("{:?}", w);
 
 
@@ -347,6 +350,158 @@ extern "C" fn generate_random_mpl_w(layers_ptr: *mut f32, number_of_layers: usiz
         arr_slice.as_mut_ptr()
     }
 }
+
+
+#[no_mangle]
+extern "C" fn multi_layer_perceptron_training(w_ptr: *mut f32,
+                                              labels_ptr : *mut f32,
+                                              inputs_ptr: *mut f32,
+                                              number_of_inputs: usize,
+                                              dimension_of_inputs: usize,
+                                              number_of_classes_to_predict: usize,
+                                              learning_rate: f32,
+                                              epoch: usize,
+                                              layers_ptr: *mut f32, // forme du perceptron, ex: (2, 2, 1)
+                                              number_of_layers: usize, // nombre de couches
+                                              is_classification: bool) -> *mut f32 {
+    unsafe {
+
+        if number_of_layers < 2 {
+            panic!("Not enough layers.");
+        }
+        let layers = std::slice::from_raw_parts(layers_ptr, number_of_layers);
+        if layers[0] as usize != dimension_of_inputs {
+            panic!("Wrong number of neurons in the first layer.");
+        }
+        if layers[number_of_layers - 1] as usize != number_of_classes_to_predict {
+            panic!("Wrong number of neurons in the last layer.");
+        }
+
+        let mut total_number_of_weights = get_number_of_w(layers_ptr, number_of_layers);
+
+        let w_param = std::slice::from_raw_parts(w_ptr, total_number_of_weights);
+
+        let mut w_index:usize = 0;
+        let mut w: Vec<Vec<Vec<f32>>> = Vec::with_capacity(number_of_layers);
+        w.push(Vec::from(Vec::new())); // à chaque fois on veut avoir un w[l][i][j] avec rien dans notre couche l
+
+        for l /*layer*/ in 0..(number_of_layers - 1) { // on calcule d'une couche à la suivante, donc on ne prend pas la première.
+            let size_of_w_l: usize = layers[l] as usize + 1; // on a rajouté 1 pour le biais
+            let mut w_l: Vec<Vec<f32>> = Vec::with_capacity(size_of_w_l);
+            for i in 0..size_of_w_l {
+                let size_of_w_l_i: usize = layers[l + 1] as usize; // on met pas +1 parce qu'on veut pas le biais
+                let mut w_l_i: Vec<f32> = Vec::with_capacity(size_of_w_l_i);
+                for j in 0..size_of_w_l_i {
+                    w_l_i.push(w_param[w_index]);
+                    w_index += 1;
+                }
+                w_l.push(w_l_i);
+            }
+            w.push(w_l);
+        }
+
+
+        let inputs_data = std::slice::from_raw_parts(inputs_ptr,
+                                                       number_of_inputs * dimension_of_inputs);
+        // inputs_ptr = [0, 0]
+        //              [0, 1] dimension of inputs = 2
+        //              [1, 0] number of inputs = 4
+        //              [1, 1] donc on a bien un vecteur de taille  8
+        let labels = std::slice::from_raw_parts(labels_ptr,
+                                                number_of_inputs * number_of_classes_to_predict);
+        // labels = [-1, 1, 1, -1]
+        // len = 4 * 1
+        use rand::thread_rng;
+        use rand::seq::SliceRandom;
+
+
+        for _ in 0..epoch {
+            let mut randomly_ordered_dataset: Vec<usize> = (0..number_of_inputs).collect();
+            randomly_ordered_dataset.shuffle(&mut thread_rng());
+
+            for k in randomly_ordered_dataset {
+
+                let mut x : Vec<Vec<f32>> = Vec::with_capacity(number_of_layers);
+                // x est la totalité de nos x
+
+                let size_of_x_0: usize = layers[0] as usize + 1; // = 2 + 1 = 3
+                let mut x_0: Vec<f32> = Vec::with_capacity(size_of_x_0);
+                x_0.push(1f32);
+                for j in 0..(size_of_x_0-1) { // 0..2
+                    // x_0 = [1, 1, 0]
+                    x_0.push(inputs_data[k * dimension_of_inputs + j]); // inputs = [0, 0, 0, 1, 1, 0, 1, 1]
+                }
+                x.push(x_0);
+
+
+                let mut y_k:Vec<f32> = Vec::with_capacity(number_of_classes_to_predict + 1);
+                y_k.push(1f32);
+                for class_number in 0..number_of_classes_to_predict {
+                    y_k.push(labels[k * number_of_classes_to_predict + class_number]);
+                }
+
+
+                let mut delta : Vec<Vec<f32>> = Vec::with_capacity(number_of_layers);
+                delta.push(vec![0f32; size_of_x_0]);
+
+
+                for l in 1..number_of_layers {
+                    let size_of_x_l: usize = layers[l] as usize;
+                    let mut x_l: Vec<f32> = Vec::with_capacity(size_of_x_l);
+                    x_l.push(1f32);
+                    for j in 1..size_of_x_l {
+                        let mut x_l_i = 0f32;
+                        for i in 0..layers[l-1] {
+                            x_l_i += w[l][i][j] * x[l-1][i];
+                        }
+                        x_l.push(x_l_i.tanh());
+                    }
+                    x.push(x_l);
+                    delta.push(vec![0f32; size_of_x_l]);
+                }
+
+                let L = number_of_layers - 1;
+                let size_of_delta_L = layers[L];
+                for j in 1..size_of_delta_L {
+                    if is_classification {
+                        delta[L][j] = (1f32 - x[L][j] * x[L][j]) * (x[L][j] - y_k[j]);
+                    } else {
+                        delta[L][j] = x[L][j] - y_k[j];
+                    }
+                }
+                for l in number_of_layers-1..0 {
+                    delta[l - 1][0] = 0f32;
+                    for i in 0..layers[l - 1] {
+                        let mut weighed_sum_of_errors = 0f32;
+                        for j in 0..layers[l] {
+                            weighed_sum_of_errors += w[l][i][j] * delta[l][j];
+                        }
+                        delta[l][i] = (1f32 - x[l - 1][i] * x[l - 1][i]) * weighed_sum_of_errors;
+                    }
+                }
+
+                for l in 1..number_of_layers {
+                    for i in 0..layers[l - 1] {
+                        for j in 0..layers[l] {
+                            w[l][i][j] -= learning_rate * x[l - 1][i] * delta[l][j];
+                        }
+                    }
+                }
+            }
+        }
+        let mut w_return = Vec::with_capacity(total_number_of_weights);
+        for l /*layer*/ in 1..number_of_layers { // on calcule d'une couche à la suivante, donc on ne prend pas la première.
+            for i in 0..layers[l] + 1 {
+                for j in 0..layers[l + 1] + 1 {
+                    w_return.push(w[l][i][j]);
+                }
+            }
+        }
+        let arr_slice = w_return.leak();
+        arr_slice.as_mut_ptr()
+    }
+}
+
 
 
 // #[no_mangle]

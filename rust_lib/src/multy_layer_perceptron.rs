@@ -1,21 +1,22 @@
 use nalgebra::*;
-pub fn patate() {
-    //let uce = SMatrix::new(f32, 3, 2);
-    let m = Matrix2::new(2.0, 3.0, 1.0, 5.0);
-    println!("{}", m.pseudo_inverse(0.0).unwrap()); //hardcoding 10^-7 is probably not what you want here
-    println!("{}", ().try_inverse().unwrap());
-}
+// pub fn patate() {
+//     //let uce = SMatrix::new(f32, 3, 2);
+//     let m = Matrix2::new(2.0, 3.0, 1.0, 5.0);
+//     println!("{}", m.pseudo_inverse(0.0).unwrap()); //hardcoding 10^-7 is probably not what you want here
+//     println!("{}", ().try_inverse().unwrap());
+// }
+//
 
 
-
-#[no_mangle]
-extern "C" fn generate_random_w(layers_ptr: *mut usize, number_of_layers: usize, seed: u64) -> *mut f32 {
+// #[no_mangle]
+// extern "C" fn generate_random_w(layers_ptr: *mut usize, number_of_layers: usize, seed: u64) -> *mut f32 {
+pub extern "C" fn generate_random_w(layers_ptr: *mut usize, number_of_layers: usize) -> *mut f32 {
     unsafe {
         // À vérifier, mais une seed a l'air de généralement être du u64 en Rust.
         use rand::Rng;
         let mut rng = rand::thread_rng();   // À changer pour prendre en compte la seed fournie.
 
-        let layers = Vec::from_raw_parts(layers_ptr, number_of_layers, number_of_layers);
+        let layers = std::slice::from_raw_parts(layers_ptr, number_of_layers);
         let mut total_number_of_weights = 0;
 
         for l in 0..(number_of_layers - 1) {

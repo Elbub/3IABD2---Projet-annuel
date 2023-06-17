@@ -1,4 +1,4 @@
-//mod multyLayerPerceptron;
+mod multy_layer_perceptron;
 
 use nalgebra::DMatrix;
 
@@ -256,7 +256,7 @@ extern "C" fn predict_linear_model(vec_to_predict_ptr: *const f32, trained_model
 }
 
 #[no_mangle]
-pub extern "C" fn x_transpose_times_x(x_ptr: *mut f32, longueur_x: usize, colonnes_x: usize) -> *mut f32 {
+extern "C" fn x_transpose_times_x(x_ptr: *mut f32, longueur_x: usize, colonnes_x: usize) -> *mut f32 {
     unsafe {
         use nalgebra::*;
         let x_vect = std::slice::from_raw_parts(x_ptr, longueur_x * colonnes_x);
@@ -285,10 +285,77 @@ pub extern "C" fn x_transpose_times_x(x_ptr: *mut f32, longueur_x: usize, colonn
 
         // let w: Vec<_> = x_mat.iter().cloned().collect();
         let arr_slice = w.leak();
-        println!("coucou");
         arr_slice.as_mut_ptr()
     }
 }
+
+#[no_mangle]
+extern "C" fn get_number_of_w(layers_ptr: *mut f32, number_of_layers: usize) -> usize {
+    unsafe {
+        let layers = std::slice::from_raw_parts(layers_ptr, number_of_layers);
+        let mut total_number_of_weights = 0.0;
+
+
+        for l in 0..(number_of_layers - 1) {
+            total_number_of_weights += (layers[l] + 1.0) * layers[l + 1];
+        }
+        println!("{:?}", total_number_of_weights);
+        total_number_of_weights as usize
+    }
+}
+
+#[no_mangle]
+extern "C" fn generate_random_mpl_w(layers_ptr: *mut f32, number_of_layers: usize) -> *mut f32 {
+    unsafe {
+        // À vérifier, mais une seed a l'air de généralement être du u64 en Rust.
+        use rand::Rng;
+        println!("hello there");
+        let mut rng = rand::thread_rng();   // À changer pour prendre en compte la seed fournie.
+
+        let layers = std::slice::from_raw_parts(layers_ptr, number_of_layers);
+        println!("{:?}", layers);
+
+        println!("2");
+
+
+        let total_number_of_weights = get_number_of_w(layers_ptr, number_of_layers);
+
+        println!("nbr of weights {:?}", total_number_of_weights);
+
+
+        let mut w: Vec<f32> = Vec::with_capacity(total_number_of_weights as usize);
+        for l in 0..(number_of_layers - 1) { // on calcule d'une couche à la suivante, donc on ne prend pas la première.
+            // 3 -> 0 à 2
+            for _ in 0..layers[l] as i32 + 1{
+                // layers[0] = 2 -> 0 à 2
+                // layers[1] = 2 -> 0 à 2
+                w.push(0f32);
+                // w = [0]
+                for _ in 1..layers[l + 1] as i32 + 1{
+                    // layers[1] = 2 -> 1 à 2
+                    // layers[1] = 2 -> 1 à
+                    w.push(rng.gen_range(-1f32..1f32));
+                    // w = [0, 1]
+                }
+                // w = [0, 1, 0,
+            }
+        }
+        println!("{:?}", w);
+
+
+        let arr_slice = w.leak();
+        arr_slice.as_mut_ptr()
+    }
+}
+
+
+// #[no_mangle]
+// // extern "C" fn mlp_training(layers_ptr: *mut usize, number_of_layers: usize, seed: u64) -> *mut f32 {
+// extern "C" fn mlp_training(layers_ptr: *mut usize, number_of_layers: usize) -> *mut f32 {
+//     let w = multy_layer_perceptron::generate_random_w(layers_ptr, number_of_layers);
+//     w
+//
+// }
 //
 // #[no_mangle]
 // extern "C" fn trained_model(number_of_points: usize) -> Vec<f32>{

@@ -4,3 +4,4 @@ screeninfo
 environs
 Pillow
 google-search-results
+tensorflow

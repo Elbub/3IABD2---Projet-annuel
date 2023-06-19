@@ -1,4 +1,4 @@
-mod multy_layer_perceptron;
+// mod multy_layer_perceptron;
 
 use nalgebra::DMatrix;
 
@@ -487,6 +487,7 @@ extern "C" fn multi_layer_perceptron_training(w_ptr: *mut f32,
                     // x = [x_1]
                     delta.push(vec![0f32; size_of_x_l]);
                 }
+                println!("debug_1");
                 // println!("x : {:?}",x);
                 let L = number_of_layers - 1; // L = 1
                 let size_of_delta_L = layers[L] as usize + 1; // == 4
@@ -494,11 +495,13 @@ extern "C" fn multi_layer_perceptron_training(w_ptr: *mut f32,
                     if is_classification {
                         // delta[L-j+1][j-1] = (1f32 - x[L-j+1][j] * x[L-j+1][j]) * (x[L-j+1][j] - y_k[j]);
                         delta[L][j-1] = (1f32 - x[L][j] * x[L][j]) * (x[L][j] - y_k[j]);
+                        println!("rentre dans is_classification");
                     } else {
                         // delta[L-j+1][j-1] = x[L-j+1][j] - y_k[j];
                         delta[L][j-1] = x[L][j] - y_k[j];
                     }
                 }
+                println!("debug_2");
                 // println!("delta 3 : {:?}",delta);
                 for l in number_of_layers-1..0 { // l in 2..0 -> l = 2
                     delta[l - 1][0] = 0f32;
@@ -511,11 +514,14 @@ extern "C" fn multi_layer_perceptron_training(w_ptr: *mut f32,
                     }
                 }
                 // println!("delta 4 : {:?}",delta);
-
+                println!("debug_3");
                 for l in 1..number_of_layers { // 3 layers
+                    println!("number_of_layers {:?}", number_of_layers);
                     for i in 0..layers[l - 1] as usize + 1{ // i in 0..3
+                        println!("layers[l - 1 {:?}", layers[l - 1]);
                         for j in 1..layers[l] as usize + 1{ // j in 1..2
                             w[l][i][j-1] -= learning_rate * x[l - 1][i] * delta[l][j-1];
+                            println!("value of w[l][i][j-1] {:?}", w[l][i][j-1]);
                             // l = 1, i = 0 ; j = 1
                             // w[1][0][1] -= lr * x[0][0] * delta[1][1]
                         }

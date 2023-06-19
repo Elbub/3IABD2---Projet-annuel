@@ -459,15 +459,15 @@ extern "C" fn multi_layer_perceptron_training(w_ptr: *mut f32,
                 delta.push(vec![0f32; size_of_x_0]);
 
                 for l in 1..number_of_layers { // nb layers = 3 -> l=1, l=2
-                    let size_of_x_l: usize = layers[l] as usize; // size of layer[2] = 2
+                    let size_of_x_l: usize = layers[l] as usize +1; // size of layer[2] = 2
 
                     let mut x_l: Vec<f32> = Vec::with_capacity(size_of_x_l); // 2
                     x_l.push(1f32);
                     // x_1=[1, ]
-                    for j in 0..size_of_x_l { // 0..2
+                    for j in 1..size_of_x_l { // 1..3
                         let mut x_l_i = 0f32;
                         for i in 0..layers[l-1] as usize + 1{ // layers[1] = 2 + 1 = 3
-                            x_l_i += w[l][i][j] * x[l-1][i];
+                            x_l_i += w[l][i][j-1] * x[l-1][i];
                             // x_1_i = w[1][0][0] * x[0][0]   x_2_i = w[2][0][0] * x[1][0]
                             //       + w[1][1][0] * x[0][1]         + w[2][1][0] * x[1][1]
                             //       + w[1][2][0] * x[0][2]         + w[2][2][0] * x[1][2]
@@ -487,40 +487,42 @@ extern "C" fn multi_layer_perceptron_training(w_ptr: *mut f32,
                     // x = [x_1]
                     delta.push(vec![0f32; size_of_x_l]);
                 }
-                println!("debug_1");
                 // println!("x : {:?}",x);
-                let L = number_of_layers - 1; // L = 1
-                let size_of_delta_L = layers[L] as usize + 1; // == 4
-                for j in 1..size_of_delta_L{ // j in 1..4
+                let L = number_of_layers - 1; // L = 2
+                let size_of_delta_L = layers[L] as usize + 1; // == 2
+                for j in 1..size_of_delta_L{ // j in 1..2
                     if is_classification {
                         // delta[L-j+1][j-1] = (1f32 - x[L-j+1][j] * x[L-j+1][j]) * (x[L-j+1][j] - y_k[j]);
-                        delta[L][j-1] = (1f32 - x[L][j] * x[L][j]) * (x[L][j] - y_k[j]);
-                        println!("rentre dans is_classification");
+                        delta[L][j] = (1f32 - x[L][j] * x[L][j]) * (x[L][j] - y_k[j]);
                     } else {
                         // delta[L-j+1][j-1] = x[L-j+1][j] - y_k[j];
-                        delta[L][j-1] = x[L][j] - y_k[j];
+                        delta[L][j] = x[L][j] - y_k[j];
                     }
                 }
-                println!("debug_2");
-                // println!("delta 3 : {:?}",delta);
-                for l in number_of_layers-1..0 { // l in 2..0 -> l = 2
-                    delta[l - 1][0] = 0f32;
+                println!("layers : {:?}",layers);
+                println!("w : {:?}",w);
+                println!("delta : {:?}",delta);
+                for l in (1..number_of_layers).rev() { // l in 1..2 -> l = 1
+                    // println!("l value {:?}", l);
                     for i in 0..layers[l - 1] as usize + 1{ // i in 0..3
                         let mut weighed_sum_of_errors = 0f32;
-                        for j in 1..layers[l] as usize + 1{ // j in 0..3
+                        for j in 1..layers[l] as usize + 1{ // j in 1..3
+                            println!("loop delta : {:?}",delta[l][j]);
+                            println!("loop w : {:?}",w[l][i][j-1]);
+
                             weighed_sum_of_errors += w[l][i][j-1] * delta[l][j];
                         }
-                        delta[l][i] = (1f32 - x[l - 1][i] * x[l - 1][i]) * weighed_sum_of_errors;
+                        println!("weighed_sum_of_errors : {:?}",weighed_sum_of_errors);
+                        delta[l-1][i] = (1f32 - x[l - 1][i] * x[l - 1][i]) * weighed_sum_of_errors;
                     }
                 }
-                // println!("delta 4 : {:?}",delta);
-                println!("debug_3");
+                println!("delta : {:?}",delta);
+
                 for l in 1..number_of_layers { // 3 layers
-                    println!("number_of_layers {:?}", number_of_layers);
                     for i in 0..layers[l - 1] as usize + 1{ // i in 0..3
-                        println!("layers[l - 1 {:?}", layers[l - 1]);
                         for j in 1..layers[l] as usize + 1{ // j in 1..2
-                            w[l][i][j-1] -= learning_rate * x[l - 1][i] * delta[l][j-1];
+                            w[l][i][j-1] -= learning_rate * x[l - 1][i] * delta[l][j];
+                            println!("value of delta[l][j-1]] {:?}", delta[l][j]);
                             println!("value of w[l][i][j-1] {:?}", w[l][i][j-1]);
                             // l = 1, i = 0 ; j = 1
                             // w[1][0][1] -= lr * x[0][0] * delta[1][1]

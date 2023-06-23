@@ -347,9 +347,6 @@ extern "C" fn multi_layer_perceptron_training(w_ptr: *mut f32,
                                               number_of_layers: usize, // nombre de couches
                                               is_classification: bool) -> *mut f32 {
     unsafe {
-
-        use tensorboard_rs::{SummaryWriter, Event};
-        let mut writer = SummaryWriter::new(&("./logdir".to_string()));
         if number_of_layers < 2 {
             panic!("Not enough layers.");
         }
@@ -400,12 +397,8 @@ extern "C" fn multi_layer_perceptron_training(w_ptr: *mut f32,
         use rand::thread_rng;
         use rand::seq::SliceRandom;
 
-        let mut count_epoch = 1;
         for numero_epoch in 0..epoch {
-            println!("epoch:{:?}",count_epoch);
-            count_epoch += 1;
-
-            let mut number_of_mistakes = 0;
+            println!("epoch:{:?}",numero_epoch + 1);
 
             let mut randomly_ordered_dataset: Vec<usize> = (0..number_of_inputs).collect();
             randomly_ordered_dataset.shuffle(&mut thread_rng());
@@ -465,16 +458,16 @@ extern "C" fn multi_layer_perceptron_training(w_ptr: *mut f32,
                     x.push(x_l);
                     // x = [x_1]
                     delta.push(vec![0f32; size_of_x_l]);
+
                 }
                 let L = number_of_layers - 1; // L = 2
                 let size_of_delta_L = layers[L] as usize + 1; // == 2
                 for j in 1..size_of_delta_L{ // j in 1..2
+                    delta[L][j] = x[L][j] - y_k[j];
+
                     if is_classification {
                         // delta[L-j+1][j-1] = (1f32 - x[L-j+1][j] * x[L-j+1][j]) * (x[L-j+1][j] - y_k[j]);
-                        delta[L][j] = (1f32 - x[L][j] * x[L][j]) * (x[L][j] - y_k[j]);
-                    } else {
-                        // delta[L-j+1][j-1] = x[L-j+1][j] - y_k[j];
-                        delta[L][j] = x[L][j] - y_k[j];
+                        delta[L][j] *= 1f32 - x[L][j] * x[L][j];
                     }
                 }
 
@@ -499,6 +492,7 @@ extern "C" fn multi_layer_perceptron_training(w_ptr: *mut f32,
                     }
                 }
             }
+
         }
         let mut w_return = Vec::with_capacity(total_number_of_weights);
         // total_number_of_weights = 3

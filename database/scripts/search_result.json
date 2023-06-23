@@ -1,0 +1,433 @@
+{
+    "search_metadata": {
+        "id": "64931397fe41d0780e4724f3",
+        "status": "Success",
+        "json_endpoint": "https://serpapi.com/searches/e96d35c11f76a1bd/64931397fe41d0780e4724f3.json",
+        "created_at": "2023-06-21 15:13:27 UTC",
+        "processed_at": "2023-06-21 15:13:27 UTC",
+        "google_images_url": "https://www.google.com/search?q=runtuhan+asia+tenggara&oq=runtuhan+asia+tenggara&hl=en&gl=us&tbm=isch",
+        "raw_html_file": "https://serpapi.com/searches/e96d35c11f76a1bd/64931397fe41d0780e4724f3.html",
+        "total_time_taken": 0.87
+    },
+    "search_parameters": {
+        "engine": "google_images",
+        "q": "runtuhan asia tenggara",
+        "google_domain": "google.com",
+        "hl": "en",
+        "gl": "us",
+        "ijn": "0",
+        "device": "desktop"
+    },
+    "search_information": {
+        "image_results_state": "Results for exact spelling",
+        "menu_items": [
+            {
+                "position": 1,
+                "title": "All",
+                "link": "https://www.google.com/search?q=runtuhan+asia+tenggara&source=lmns&gl=us&hl=en&sa=X&ved=2ahUKEwjCg-yt09T_AhU9BVkFHRi3DK4Q0pQJKAB6BAgBEAI",
+                "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=us&google_domain=google.com&hl=en&q=runtuhan+asia+tenggara"
+            },
+            {
+                "position": 2,
+                "title": "Images"
+            },
+            {
+                "position": 3,
+                "title": "Maps",
+                "link": "https://maps.google.com/maps?q=runtuhan+asia+tenggara&source=lmns&entry=mc&gl=us&hl=en&sa=X&ved=2ahUKEwjCg-yt09T_AhU9BVkFHRi3DK4Q0pQJKAJ6BAgBEAY"
+            },
+            {
+                "position": 4,
+                "title": "News",
+                "link": "https://www.google.com/search?q=runtuhan+asia+tenggara&source=lmns&tbm=nws&gl=us&hl=en&sa=X&ved=2ahUKEwjCg-yt09T_AhU9BVkFHRi3DK4Q0pQJKAN6BAgBEAg",
+                "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=us&google_domain=google.com&hl=en&q=runtuhan+asia+tenggara&tbm=nws"
+            },
+            {
+                "position": 5,
+                "title": "Videos",
+                "link": "https://www.google.com/search?q=runtuhan+asia+tenggara&source=lmns&tbm=vid&gl=us&hl=en&sa=X&ved=2ahUKEwjCg-yt09T_AhU9BVkFHRi3DK4Q0pQJKAR6BAgBEAo",
+                "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google_videos&gl=us&google_domain=google.com&hl=en&q=runtuhan+asia+tenggara"
+            },
+            {
+                "position": 6,
+                "title": "Shopping",
+                "link": "https://www.google.com/search?q=runtuhan+asia+tenggara&source=lmns&tbm=shop&gl=us&hl=en&sa=X&ved=2ahUKEwjCg-yt09T_AhU9BVkFHRi3DK4Q0pQJKAB6BAgBEA0",
+                "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=us&google_domain=google.com&hl=en&q=runtuhan+asia+tenggara"
+            },
+            {
+                "position": 7,
+                "title": "Books",
+                "link": "https://www.google.com/search?q=runtuhan+asia+tenggara&source=lmns&tbm=bks&gl=us&hl=en&sa=X&ved=2ahUKEwjCg-yt09T_AhU9BVkFHRi3DK4Q0pQJKAF6BAgBEA4"
+            },
+            {
+                "position": 8,
+                "title": "Flights",
+                "link": "https://www.google.com/travel/flights?q=runtuhan+asia+tenggara&source=lmns&tbm=flm&gl=us&hl=en&sa=X&ved=2ahUKEwjCg-yt09T_AhU9BVkFHRi3DK4Q0pQJKAJ6BAgBEA8"
+            },
+            {
+                "position": 9,
+                "title": "Finance",
+                "link": "https://www.google.com/search?q=runtuhan+asia+tenggara&source=lmns&tbm=fin&gl=us&hl=en&sa=X&ved=2ahUKEwjCg-yt09T_AhU9BVkFHRi3DK4Q0pQJKAN6BAgBEBA"
+            }
+        ]
+    },
+    "suggested_searches": [
+        {
+            "name": "tanah runtuh",
+            "link": "https://www.google.com/search?q=runtuhan+asia+tenggara&tbm=isch&hl=en&gl=us&chips=q:runtuhan+asia+tenggara,online_chips:tanah+runtuh:1CzntC54Kpo%3D&sa=X&ved=2ahUKEwjCg-yt09T_AhU9BVkFHRi3DK4Q4lYoAHoECAEQKw",
+            "chips": "q:runtuhan+asia+tenggara,online_chips:tanah+runtuh:1CzntC54Kpo%3D",
+            "serpapi_link": "https://serpapi.com/search.json?chips=q%3Aruntuhan%2Basia%2Btenggara%2Conline_chips%3Atanah%2Bruntuh%3A1CzntC54Kpo%253D&device=desktop&engine=google_images&gl=us&google_domain=google.com&hl=en&ijn=0&q=runtuhan+asia+tenggara",
+            "thumbnail": "https://serpapi.com/searches/64931397fe41d0780e4724f3/images/7b38d63c465ad32e7cde5b9b66d2bf96d7fe6827a53e11d41c04973bccd080d2.jpeg"
+        },
+        {
+            "name": "kuari",
+            "link": "https://www.google.com/search?q=runtuhan+asia+tenggara&tbm=isch&hl=en&gl=us&chips=q:runtuhan+asia+tenggara,online_chips:kuari:n8Jhz7Rk7Ok%3D&sa=X&ved=2ahUKEwjCg-yt09T_AhU9BVkFHRi3DK4Q4lYoAXoECAEQLQ",
+            "chips": "q:runtuhan+asia+tenggara,online_chips:kuari:n8Jhz7Rk7Ok%3D",
+            "serpapi_link": "https://serpapi.com/search.json?chips=q%3Aruntuhan%2Basia%2Btenggara%2Conline_chips%3Akuari%3An8Jhz7Rk7Ok%253D&device=desktop&engine=google_images&gl=us&google_domain=google.com&hl=en&ijn=0&q=runtuhan+asia+tenggara",
+            "thumbnail": "https://serpapi.com/searches/64931397fe41d0780e4724f3/images/7b38d63c465ad32e7cde5b9b66d2bf96d47bd25e8ac527fd8912740b4fbc4a1a.jpeg"
+        },
+        {
+            "name": "gempa bumi",
+            "link": "https://www.google.com/search?q=runtuhan+asia+tenggara&tbm=isch&hl=en&gl=us&chips=q:runtuhan+asia+tenggara,online_chips:gempa+bumi:LTbLtCzf_JA%3D&sa=X&ved=2ahUKEwjCg-yt09T_AhU9BVkFHRi3DK4Q4lYoAnoECAEQLw",
+            "chips": "q:runtuhan+asia+tenggara,online_chips:gempa+bumi:LTbLtCzf_JA%3D",
+            "serpapi_link": "https://serpapi.com/search.json?chips=q%3Aruntuhan%2Basia%2Btenggara%2Conline_chips%3Agempa%2Bbumi%3ALTbLtCzf_JA%253D&device=desktop&engine=google_images&gl=us&google_domain=google.com&hl=en&ijn=0&q=runtuhan+asia+tenggara",
+            "thumbnail": "https://serpapi.com/searches/64931397fe41d0780e4724f3/images/7b38d63c465ad32e7cde5b9b66d2bf9608ce3e40fe759efdc4ffc3389fb40973.jpeg"
+        },
+        {
+            "name": "gunung kinabalu",
+            "link": "https://www.google.com/search?q=runtuhan+asia+tenggara&tbm=isch&hl=en&gl=us&chips=q:runtuhan+asia+tenggara,online_chips:gunung+kinabalu:JwM_yMxk5ys%3D&sa=X&ved=2ahUKEwjCg-yt09T_AhU9BVkFHRi3DK4Q4lYoA3oECAEQMQ",
+            "chips": "q:runtuhan+asia+tenggara,online_chips:gunung+kinabalu:JwM_yMxk5ys%3D",
+            "serpapi_link": "https://serpapi.com/search.json?chips=q%3Aruntuhan%2Basia%2Btenggara%2Conline_chips%3Agunung%2Bkinabalu%3AJwM_yMxk5ys%253D&device=desktop&engine=google_images&gl=us&google_domain=google.com&hl=en&ijn=0&q=runtuhan+asia+tenggara",
+            "thumbnail": "https://serpapi.com/searches/64931397fe41d0780e4724f3/images/7b38d63c465ad32e7cde5b9b66d2bf96d8cc656a0ab347fc8cf1803dc2ec5870.jpeg"
+        },
+        {
+            "name": "runtuhan salji",
+            "link": "https://www.google.com/search?q=runtuhan+asia+tenggara&tbm=isch&hl=en&gl=us&chips=q:runtuhan+asia+tenggara,online_chips:runtuhan+salji:mXlF9z5f5cw%3D&sa=X&ved=2ahUKEwjCg-yt09T_AhU9BVkFHRi3DK4Q4lYoBHoECAEQMw",
+            "chips": "q:runtuhan+asia+tenggara,online_chips:runtuhan+salji:mXlF9z5f5cw%3D",
+            "serpapi_link": "https://serpapi.com/search.json?chips=q%3Aruntuhan%2Basia%2Btenggara%2Conline_chips%3Aruntuhan%2Bsalji%3AmXlF9z5f5cw%253D&device=desktop&engine=google_images&gl=us&google_domain=google.com&hl=en&ijn=0&q=runtuhan+asia+tenggara",
+            "thumbnail": "https://serpapi.com/searches/64931397fe41d0780e4724f3/images/7b38d63c465ad32e7cde5b9b66d2bf9686c79400c789025812981a51cd0ea0be.jpeg"
+        },
+        {
+            "name": "bangunan runtuh",
+            "link": "https://www.google.com/search?q=runtuhan+asia+tenggara&tbm=isch&hl=en&gl=us&chips=q:runtuhan+asia+tenggara,online_chips:bangunan+runtuh:5KnsOJxgB6I%3D&sa=X&ved=2ahUKEwjCg-yt09T_AhU9BVkFHRi3DK4Q4lYoBXoECAEQNQ",
+            "chips": "q:runtuhan+asia+tenggara,online_chips:bangunan+runtuh:5KnsOJxgB6I%3D",
+            "serpapi_link": "https://serpapi.com/search.json?chips=q%3Aruntuhan%2Basia%2Btenggara%2Conline_chips%3Abangunan%2Bruntuh%3A5KnsOJxgB6I%253D&device=desktop&engine=google_images&gl=us&google_domain=google.com&hl=en&ijn=0&q=runtuhan+asia+tenggara",
+            "thumbnail": "https://serpapi.com/searches/64931397fe41d0780e4724f3/images/7b38d63c465ad32e7cde5b9b66d2bf965f4319fe5fa8f89c962ee09186bdca60.jpeg"
+        },
+        {
+            "name": "salji pergunungan",
+            "link": "https://www.google.com/search?q=runtuhan+asia+tenggara&tbm=isch&hl=en&gl=us&chips=q:runtuhan+asia+tenggara,online_chips:salji+pergunungan:ShBTVF0rVCM%3D&sa=X&ved=2ahUKEwjCg-yt09T_AhU9BVkFHRi3DK4Q4lYoBnoECAEQNw",
+            "chips": "q:runtuhan+asia+tenggara,online_chips:salji+pergunungan:ShBTVF0rVCM%3D",
+            "serpapi_link": "https://serpapi.com/search.json?chips=q%3Aruntuhan%2Basia%2Btenggara%2Conline_chips%3Asalji%2Bpergunungan%3AShBTVF0rVCM%253D&device=desktop&engine=google_images&gl=us&google_domain=google.com&hl=en&ijn=0&q=runtuhan+asia+tenggara",
+            "thumbnail": "https://serpapi.com/searches/64931397fe41d0780e4724f3/images/7b38d63c465ad32e7cde5b9b66d2bf96f11f058ccb3ecac0625c8bede798d8c9.jpeg"
+        },
+        {
+            "name": "batu",
+            "link": "https://www.google.com/search?q=runtuhan+asia+tenggara&tbm=isch&hl=en&gl=us&chips=q:runtuhan+asia+tenggara,online_chips:batu:YzSlXc96TRw%3D&sa=X&ved=2ahUKEwjCg-yt09T_AhU9BVkFHRi3DK4Q4lYoB3oECAEQOQ",
+            "chips": "q:runtuhan+asia+tenggara,online_chips:batu:YzSlXc96TRw%3D",
+            "serpapi_link": "https://serpapi.com/search.json?chips=q%3Aruntuhan%2Basia%2Btenggara%2Conline_chips%3Abatu%3AYzSlXc96TRw%253D&device=desktop&engine=google_images&gl=us&google_domain=google.com&hl=en&ijn=0&q=runtuhan+asia+tenggara",
+            "thumbnail": "https://serpapi.com/searches/64931397fe41d0780e4724f3/images/7b38d63c465ad32e7cde5b9b66d2bf9695a4ac4b87853a2b1eae611580ecb463.jpeg"
+        }
+    ],
+    "images_results": [
+        {
+            "position": 1,
+            "thumbnail": "https://serpapi.com/searches/64931397fe41d0780e4724f3/images/f13372e8e8145bff6013c77962a002de53da43eb54d3211b51d290f488dc71d3.jpeg",
+            "related_content_id": "ZHAxQlJaUjE2V1JMeU1cIixcInV6b2l2R1VNZEdXSjdN",
+            "serpapi_related_content_link": "https://serpapi.com/search.json?engine=google_images_related_content&gl=us&hl=en&q=runtuhan+asia+tenggara&related_content_id=ZHAxQlJaUjE2V1JMeU1cIixcInV6b2l2R1VNZEdXSjdN",
+            "source": "Benar News",
+            "title": "Keselamatan di Asia Tenggara ...",
+            "link": "https://www.benarnews.org/malay/komentar/my-yearend-abuza-171227-12272017143624.html",
+            "original": "https://www.benarnews.org/malay/komentar/my-yearend-abuza-171227-12272017143624.html/171221-SEA-abuza-620.JPG/@@images/image",
+            "original_width": 1000,
+            "original_height": 639,
+            "is_product": false
+        },
+        {
+            "position": 2,
+            "thumbnail": "https://serpapi.com/searches/64931397fe41d0780e4724f3/images/f13372e8e8145bff29dffe2005d7b66d924f54ddf1e0ed43793fe66dfc4de446.jpeg",
+            "related_content_id": "R3dubExTUm55alVSZE1cIixcIkNwSGU0QnBLdTVKMHFN",
+            "serpapi_related_content_link": "https://serpapi.com/search.json?engine=google_images_related_content&gl=us&hl=en&q=runtuhan+asia+tenggara&related_content_id=R3dubExTUm55alVSZE1cIixcIkNwSGU0QnBLdTVKMHFN",
+            "source": "hi-in.facebook.com",
+            "title": "Batu Tamadun Terawal Asia Tenggara ...",
+            "link": "https://hi-in.facebook.com/sungaibatutamadunterawalasiatenggara/posts/kesan-runtuhan-bangunan-bangunan-binaan-sejak-abad-ke-5-sebelum-masehi-bayangkan/2305808256340069/",
+            "original": "https://lookaside.fbsbx.com/lookaside/crawler/media/?media_id=2305808156340079",
+            "original_width": 960,
+            "original_height": 720,
+            "is_product": false
+        },
+        {
+            "position": 3,
+            "thumbnail": "https://serpapi.com/searches/64931397fe41d0780e4724f3/images/f13372e8e8145bffe183402c3bf7da20397a3e81179d10d2983728e43145fe36.jpeg",
+            "related_content_id": "TTRMdTY1d2hfUzI5Wk1cIixcInkzODd4QXFxbFBOdjRN",
+            "serpapi_related_content_link": "https://serpapi.com/search.json?engine=google_images_related_content&gl=us&hl=en&q=runtuhan+asia+tenggara&related_content_id=TTRMdTY1d2hfUzI5Wk1cIixcInkzODd4QXFxbFBOdjRN",
+            "source": "Utusan Malaysia",
+            "title": "Rakyat Turkiye, Syria marah ...",
+            "link": "https://www.utusan.com.my/terkini/2023/02/kerajaan-lambat-bertindak-rakyat-turkiye-syria-marah/",
+            "original": "https://www.utusan.com.my/wp-content/uploads/000_338T4WG.jpg",
+            "original_width": 1000,
+            "original_height": 667,
+            "is_product": false
+        },
+        {
+            "position": 4,
+            "thumbnail": "https://serpapi.com/searches/64931397fe41d0780e4724f3/images/f13372e8e8145bffc867c4b0f22d257cd14141c5bc4763faa01381aebf763569.jpeg",
+            "related_content_id": "NmV4a3RNOWh3cC1CcE1cIixcImpyNXFaV1A0TzdtOW1N",
+            "serpapi_related_content_link": "https://serpapi.com/search.json?engine=google_images_related_content&gl=us&hl=en&q=runtuhan+asia+tenggara&related_content_id=NmV4a3RNOWh3cC1CcE1cIixcImpyNXFaV1A0TzdtOW1N",
+            "source": "Utusan Malaysia",
+            "title": "Runtuhan kuari: Lokasi dua mangsa ...",
+            "link": "https://www.utusan.com.my/nasional/2022/03/runtuhan-kuari-lokasi-dua-mangsa-tertimbus-dikenal-pasti/",
+            "original": "https://www.utusan.com.my/wp-content/uploads/c1f1fc3a-5486-480c-847f-dd8967b1801f.jpg",
+            "original_width": 780,
+            "original_height": 1040,
+            "is_product": false
+        },
+        {
+            "position": 5,
+            "thumbnail": "https://serpapi.com/searches/64931397fe41d0780e4724f3/images/f13372e8e8145bff5d9666781cb97f83f1abe821af0ded9c23d92a24dc3a2286.jpeg",
+            "related_content_id": "SEUxNnoxMmxOR01PUk1cIixcIkNrMTZTZHJtUHctVTdN",
+            "serpapi_related_content_link": "https://serpapi.com/search.json?engine=google_images_related_content&gl=us&hl=en&q=runtuhan+asia+tenggara&related_content_id=SEUxNnoxMmxOR01PUk1cIixcIkNrMTZTZHJtUHctVTdN",
+            "source": "Utusan Malaysia",
+            "title": "Hujan punca batu kuari runtuh - Utusan ...",
+            "link": "https://www.utusan.com.my/nasional/tragedi/2022/03/hujan-punca-batu-kuari-runtuh/",
+            "original": "https://www.utusan.com.my/wp-content/uploads/WhatsApp-Image-2022-03-08-at-6.54.19-PM.jpeg",
+            "original_width": 960,
+            "original_height": 1280,
+            "is_product": false
+        },
+        {
+            "position": 6,
+            "thumbnail": "https://serpapi.com/searches/64931397fe41d0780e4724f3/images/f13372e8e8145bff2c3ca2946fb23886e736318577ad7201d1877e6f064cdc6d.jpeg",
+            "related_content_id": "aUpiaVo2Vmh6U0VEc01cIixcIlBsOUh0S1E5WTNDX3BN",
+            "serpapi_related_content_link": "https://serpapi.com/search.json?engine=google_images_related_content&gl=us&hl=en&q=runtuhan+asia+tenggara&related_content_id=aUpiaVo2Vmh6U0VEc01cIixcIlBsOUh0S1E5WTNDX3BN",
+            "source": "Utusan Malaysia",
+            "title": "disyaki punca runtuhan cerun",
+            "link": "https://www.utusan.com.my/nasional/2022/12/aliran-air-bawah-tanah-disyaki-punca-runtuhan-cerun/",
+            "original": "https://www.utusan.com.my/wp-content/uploads/TANAHRUNTUH20.jpg",
+            "original_width": 1773,
+            "original_height": 1182,
+            "is_product": false
+        },
+        {
+            "position": 7,
+            "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQYiY-WnN2owJq9f0ZQQFX2Y9yVybmwDES2Uait3-1g_KLf3XGClMCGsHi3VvgvK6RYYcQ&usqp=CAU",
+            "related_content_id": "b2dkZ25EanNxZVJTa01cIixcImVTbW1yQzVNekZnOGtN",
+            "serpapi_related_content_link": "https://serpapi.com/search.json?engine=google_images_related_content&gl=us&hl=en&q=runtuhan+asia+tenggara&related_content_id=b2dkZ25EanNxZVJTa01cIixcImVTbW1yQzVNekZnOGtN",
+            "source": "Media Permata Online",
+            "title": "11 terkorban kejadian bangunan runtuh ...",
+            "link": "https://mediapermata.com.bn/11-terkorban-kejadian-bangunan-runtuh/",
+            "original": "https://mediapermata.com.bn/wp-content/uploads/2022/05/P11-A_25052022.jpg",
+            "original_width": 800,
+            "original_height": 533,
+            "is_product": false
+        },
+        {
+            "position": 8,
+            "thumbnail": "https://serpapi.com/searches/64931397fe41d0780e4724f3/images/f13372e8e8145bff7e7e1d0cab458ba0c45e33c50d85f272e48c586bab6bf6e3.jpeg",
+            "related_content_id": "N2gzWHJIQ3FubDdXUk1cIixcIjhRN0kxSlJVN3QxQ1VN",
+            "serpapi_related_content_link": "https://serpapi.com/search.json?engine=google_images_related_content&gl=us&hl=en&q=runtuhan+asia+tenggara&related_content_id=N2gzWHJIQ3FubDdXUk1cIixcIjhRN0kxSlJVN3QxQ1VN",
+            "source": "Facebook",
+            "title": "oldest civilization in Southeast Asia ...",
+            "link": "https://www.facebook.com/SEAheritagehistory/photos/a.479443552588134/924296818102803/?type=3",
+            "original": "https://lookaside.fbsbx.com/lookaside/crawler/media/?media_id=924296818102803",
+            "original_width": 1638,
+            "original_height": 2048,
+            "is_product": false
+        },
+        {
+            "position": 9,
+            "thumbnail": "https://serpapi.com/searches/64931397fe41d0780e4724f3/images/f13372e8e8145bff9544ed1a1f825707785bef18569a3682e6e5fb2e82c1a81d.jpeg",
+            "related_content_id": "R3k4STdXOV9RWVE4T01cIixcInA5Qm85aEZIY3ZpdG1N",
+            "serpapi_related_content_link": "https://serpapi.com/search.json?engine=google_images_related_content&gl=us&hl=en&q=runtuhan+asia+tenggara&related_content_id=R3k4STdXOV9RWVE4T01cIixcInA5Qm85aEZIY3ZpdG1N",
+            "source": "Harian Metro",
+            "title": "Suara rintihan bawah runtuhan",
+            "link": "https://www.hmetro.com.my/utama/2023/02/933790/suara-rintihan-bawah-runtuhan",
+            "original": "https://assets.hmetro.com.my/images/articles/korekbangunn1_1675828808.jpg",
+            "original_width": 1200,
+            "original_height": 704,
+            "is_product": false
+        },
+        {
+            "position": 10,
+            "thumbnail": "https://serpapi.com/searches/64931397fe41d0780e4724f3/images/f13372e8e8145bff4abd81c9d858d026a9b7816ab6ef973b70a33cadd864a49a.jpeg",
+            "related_content_id": "bWlwNExyVG5MTlI3Tk1cIixcInR3cjBGSUg0RXRIUk5N",
+            "serpapi_related_content_link": "https://serpapi.com/search.json?engine=google_images_related_content&gl=us&hl=en&q=runtuhan+asia+tenggara&related_content_id=bWlwNExyVG5MTlI3Tk1cIixcInR3cjBGSUg0RXRIUk5N",
+            "source": "Portal Berita RTM",
+            "title": "Cebisan tulang, rangka manusia dijumpai ...",
+            "link": "https://berita.rtm.gov.my/index.php/semasa/47267-cebisan-tulang-rangka-manusia-dijumpai-di-lokasi-tanah-runtuh-kuari-danshak",
+            "original": "https://berita.rtm.gov.my/images/200922_PRK_POLIS_RUNTUHAN_1.png",
+            "original_width": 600,
+            "original_height": 350,
+            "is_product": false
+        },
+        {
+            "position": 11,
+            "thumbnail": "https://serpapi.com/searches/64931397fe41d0780e4724f3/images/f13372e8e8145bff29dffe2005d7b66d518ea3579f7e33f655228424e6cb1b90.jpeg",
+            "related_content_id": "QnUteER5RUp0QVlqN01cIixcIkNwSGU0QnBLdTVKMHFN",
+            "serpapi_related_content_link": "https://serpapi.com/search.json?engine=google_images_related_content&gl=us&hl=en&q=runtuhan+asia+tenggara&related_content_id=QnUteER5RUp0QVlqN01cIixcIkNwSGU0QnBLdTVKMHFN",
+            "source": "hi-in.facebook.com",
+            "title": "Batu Tamadun Terawal Asia Tenggara ...",
+            "link": "https://hi-in.facebook.com/sungaibatutamadunterawalasiatenggara/posts/kesan-runtuhan-bangunan-bangunan-binaan-sejak-abad-ke-5-sebelum-masehi-bayangkan/2305808256340069/",
+            "original": "https://lookaside.fbsbx.com/lookaside/crawler/media/?media_id=2305808233006738",
+            "original_width": 960,
+            "original_height": 720,
+            "is_product": false
+        },
+        {
+            "position": 12,
+            "thumbnail": "https://serpapi.com/searches/64931397fe41d0780e4724f3/images/f13372e8e8145bff29dffe2005d7b66d4c20e011a45b6e20e35ca3c68717b321.jpeg",
+            "related_content_id": "R2UtZy12akt0aEgyek1cIixcIllpb0FxZzBfUzZzbEZN",
+            "serpapi_related_content_link": "https://serpapi.com/search.json?engine=google_images_related_content&gl=us&hl=en&q=runtuhan+asia+tenggara&related_content_id=R2UtZy12akt0aEgyek1cIixcIllpb0FxZzBfUzZzbEZN",
+            "source": "Utusan Malaysia",
+            "title": "runtuhan batu di kuari ...",
+            "link": "https://www.utusan.com.my/nasional/2022/03/masih-ada-pergerakan-tanah-runtuhan-batu-di-kuari/",
+            "original": "https://www.utusan.com.my/wp-content/uploads/WhatsApp-Image-2022-03-10-at-2.19.09-PM.jpeg",
+            "original_width": 1280,
+            "original_height": 960,
+            "is_product": false
+        },
+        {
+            "position": 13,
+            "thumbnail": "https://serpapi.com/searches/64931397fe41d0780e4724f3/images/f13372e8e8145bff29dffe2005d7b66d342a17fe96f45312dbad81e101b605c2.jpeg",
+            "related_content_id": "NEhxUVZ2V0FwUUVock1cIixcInk2cjU3WEdwRk1sV0pN",
+            "serpapi_related_content_link": "https://serpapi.com/search.json?engine=google_images_related_content&gl=us&hl=en&q=runtuhan+asia+tenggara&related_content_id=NEhxUVZ2V0FwUUVock1cIixcInk2cjU3WEdwRk1sV0pN",
+            "source": "Portal Berita RTM",
+            "title": "Bangunan kerajaan dipantau, elak risiko ...",
+            "link": "https://berita.rtm.gov.my/index.php/semasa/63664-bangunan-kerajaan-dipantau-elak-risiko-runtuhan",
+            "original": "https://berita.rtm.gov.my/images/stories/2023/16-23%20MEI/1705_nanta_bangunan_1.png",
+            "original_width": 600,
+            "original_height": 350,
+            "is_product": false
+        },
+        {
+            "position": 14,
+            "thumbnail": "https://serpapi.com/searches/64931397fe41d0780e4724f3/images/f13372e8e8145bff29dffe2005d7b66dbb829f17b2f2205facb6ad1b58dc663d.jpeg",
+            "related_content_id": "SF9JNXNkTjlVczZtOE1cIixcIjFYRXF4UUtQTjlMTDZN",
+            "serpapi_related_content_link": "https://serpapi.com/search.json?engine=google_images_related_content&gl=us&hl=en&q=runtuhan+asia+tenggara&related_content_id=SF9JNXNkTjlVczZtOE1cIixcIjFYRXF4UUtQTjlMTDZN",
+            "source": "Portal Berita RTM",
+            "title": "Runtuhan salji pergunungan Lapan orang ...",
+            "link": "https://berita.rtm.gov.my/index.php/lifestyle/55548-runtuhan-salji-pergunungan-lapan-orang-disahkan-maut",
+            "original": "https://berita.rtm.gov.my/images/stories/2023/16-31JAN/1901_BD_8_MAUT_RUNTUHAN_SALJI.png",
+            "original_width": 600,
+            "original_height": 350,
+            "is_product": false
+        },
+        {
+            "position": 15,
+            "thumbnail": "https://serpapi.com/searches/64931397fe41d0780e4724f3/images/f13372e8e8145bff29dffe2005d7b66d375dcf98ab6f5b2525d9b03b41e456e9.jpeg",
+            "related_content_id": "dGRNYndWZzZYMy1vVk1cIixcIjY1U1BVbVBYcGhTZ0JN",
+            "serpapi_related_content_link": "https://serpapi.com/search.json?engine=google_images_related_content&gl=us&hl=en&q=runtuhan+asia+tenggara&related_content_id=dGRNYndWZzZYMy1vVk1cIixcIjY1U1BVbVBYcGhTZ0JN",
+            "source": "Azila's Travels....",
+            "title": "Azila's Travels....: 2021 TRAVEL REVIEW ...",
+            "link": "http://azziamd1.blogspot.com/2021/04/2021-travel-review-10-in-brief-asia.html",
+            "original": "https://1.bp.blogspot.com/-XmC6-u3vFQc/YA2IleGxdiI/AAAAAAABdYc/Q3PWQJA9754IkQ5eabfq490toKNq1g_1QCLcBGAsYHQ/s830/Southeast%2BAsia%2BMap.jpg",
+            "original_width": 830,
+            "original_height": 555,
+            "is_product": false
+        },
+        {
+            "position": 16,
+            "thumbnail": "https://serpapi.com/searches/64931397fe41d0780e4724f3/images/f13372e8e8145bff29dffe2005d7b66d0020e34680554eb404f3efa5bfc45f0b.jpeg",
+            "related_content_id": "RU96aWUwbktZcHpZd01cIixcIm5mcjRSYkJfMVBNQU1N",
+            "serpapi_related_content_link": "https://serpapi.com/search.json?engine=google_images_related_content&gl=us&hl=en&q=runtuhan+asia+tenggara&related_content_id=RU96aWUwbktZcHpZd01cIixcIm5mcjRSYkJfMVBNQU1N",
+            "source": "Utusan Malaysia",
+            "title": "Gempa ranapkan Tapak Warisan Dunia ...",
+            "link": "https://www.utusan.com.my/luar-negara/2023/02/gempa-ranapkan-tapak-warisan-dunia/",
+            "original": "https://www.utusan.com.my/wp-content/uploads/090223-38-tapak-sejarah-pixs1.jpg",
+            "original_width": 860,
+            "original_height": 573,
+            "is_product": false
+        },
+        {
+            "position": 17,
+            "thumbnail": "https://serpapi.com/searches/64931397fe41d0780e4724f3/images/f13372e8e8145bff29dffe2005d7b66d40dff1814a29adc84db59d84c9870c43.jpeg",
+            "related_content_id": "eWhQMEJpS3FGVjBJNE1cIixcIjlibGJrX1k4R2c1REdN",
+            "serpapi_related_content_link": "https://serpapi.com/search.json?engine=google_images_related_content&gl=us&hl=en&q=runtuhan+asia+tenggara&related_content_id=eWhQMEJpS3FGVjBJNE1cIixcIjlibGJrX1k4R2c1REdN",
+            "source": "HarakahDaily",
+            "title": "Korban cecah 50,000: Turkiye tangkap ...",
+            "link": "https://harakahdaily.net/index.php/2023/02/24/korban-cecah-50000-turkiye-tangkap-lebih-banyak-kontraktor/",
+            "original": "https://harakahdaily.net/wp-content/uploads/2023/02/solat-hatay.jpg",
+            "original_width": 859,
+            "original_height": 586,
+            "is_product": false
+        },
+        {
+            "position": 18,
+            "thumbnail": "https://serpapi.com/searches/64931397fe41d0780e4724f3/images/f13372e8e8145bff29dffe2005d7b66d3cec00bb35ef901eedfb7f84e0884603.jpeg",
+            "related_content_id": "a1B6ZkxMVExOaTNNTk1cIixcInFUNkotd0lzVGVsdUFN",
+            "serpapi_related_content_link": "https://serpapi.com/search.json?engine=google_images_related_content&gl=us&hl=en&q=runtuhan+asia+tenggara&related_content_id=a1B6ZkxMVExOaTNNTk1cIixcInFUNkotd0lzVGVsdUFN",
+            "source": "Bernama",
+            "title": "MAYAT PEMAIN BOLA SEPAK CHRISTIAN ATSU ...",
+            "link": "https://www.bernama.com/bm/news.php?id=2165687",
+            "original": "https://web14.bernama.com/storage/photos/d9995942a230c60e7ac0f99000cb196b63f0b388890be",
+            "original_width": 1110,
+            "original_height": 694,
+            "is_product": false
+        },
+        {
+            "position": 19,
+            "thumbnail": "https://serpapi.com/searches/64931397fe41d0780e4724f3/images/f13372e8e8145bff29dffe2005d7b66dece8cc918e4d52c3c8b3f5a1036affc3.jpeg",
+            "related_content_id": "MXBHdmxaWTFKSEhLUU1cIixcIk5ocVVJcnpxd21MZHNN",
+            "serpapi_related_content_link": "https://serpapi.com/search.json?engine=google_images_related_content&gl=us&hl=en&q=runtuhan+asia+tenggara&related_content_id=MXBHdmxaWTFKSEhLUU1cIixcIk5ocVVJcnpxd21MZHNN",
+            "source": "Portal Berita RTM",
+            "title": "Runtuhan salji di Tajikistan, angka ...",
+            "link": "https://berita.rtm.gov.my/~berita/index.php/lifestyle/57751-runtuhan-salji-di-tajikistan-angka-kematian-meningkat-kepada-19-orang",
+            "original": "https://berita.rtm.gov.my/~berita/images/stories/2023/20-28FEB/2002_BD_TAKISTAN_AVALANCHES-19_DEATH_1.png",
+            "original_width": 600,
+            "original_height": 350,
+            "is_product": false
+        },
+        {
+            "position": 20,
+            "thumbnail": "https://serpapi.com/searches/64931397fe41d0780e4724f3/images/f13372e8e8145bff29dffe2005d7b66dc413537df12e477a0b09ddf185d9412c.jpeg",
+            "related_content_id": "Y0ZQSTF0dHA2TXlLSU1cIixcImVJTHRZdFVJNTUtbWRN",
+            "serpapi_related_content_link": "https://serpapi.com/search.json?engine=google_images_related_content&gl=us&hl=en&q=runtuhan+asia+tenggara&related_content_id=Y0ZQSTF0dHA2TXlLSU1cIixcImVJTHRZdFVJNTUtbWRN",
+            "source": "Utusan Malaysia",
+            "title": "Jika lihat keadaan runtuhan, mangsa ...",
+            "link": "https://www.utusan.com.my/berita/2023/06/jika-lihat-keadaan-runtuhan-mangsa-mungkin-tidak-selamat/",
+            "original": "https://www.utusan.com.my/wp-content/uploads/DEWANBESARIKIM_0417.jpg",
+            "original_width": 2400,
+            "original_height": 1600,
+            "is_product": false
+        },
+        {
+            "position": 21,
+            "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSM8YVji5uX4f16sPgODPsvhUiTKEAXfiggDA&usqp=CAU",
+            "related_content_id": "aHM0S1NveV9Ya2xmY01cIixcInhzSEtiaXpJTlRFVVZN",
+            "serpapi_related_content_link": "https://serpapi.com/search.json?engine=google_images_related_content&gl=us&hl=en&q=runtuhan+asia+tenggara&related_content_id=aHM0S1NveV9Ya2xmY01cIixcInhzSEtiaXpJTlRFVVZN",
+            "source": "Bernama",
+            "title": "JMG KESAN EMPAT RUNTUHAN TANAH ...",
+            "link": "https://bernama.com/bm/am/news.php?id=1994956",
+            "original": "https://bernama.com/storage/photos/2edc1c92806228761c001329c4a152f76120c9938e97d",
+            "original_width": 1110,
+            "original_height": 694,
+            "is_product": false
+        },
+        {
+            "position": 22,
+            "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQNfJN5fLfRIhhEcuMm5s-qbSPIDMawgNhT-g&usqp=CAU",
+            "related_content_id": "bm8xTk5XaDlnaFk0ME1cIixcIlByN1JWVl9qVVg3Z2RN",
+            "serpapi_related_content_link": "https://serpapi.com/search.json?engine=google_images_related_content&gl=us&hl=en&q=runtuhan+asia+tenggara&related_content_id=bm8xTk5XaDlnaFk0ME1cIixcIlByN1JWVl9qVVg3Z2RN",
+            "source": "Berita Harian",
+            "title": "mangsa gempa di Turkiye, Syria ...",
+            "link": "https://www.bharian.com.my/berita/nasional/2023/02/1060749/rakyat-malaysia-perlu-bagi-sokongan-kepada-mangsa-gempa-di-turkiye",
+            "original": "https://assets.bharian.com.my/images/articles/bh07wanita1_1675745957.jpg",
+            "original_width": 960,
+            "original_height": 640,
+            "is_product": false
+        },
+        {
+            "position": 23,
+            "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ53Hf2O8tfBbiuSCm4u7cVp7HVjC4lwaEVqA&usqp=CAU",
+            "related_content_id": "NmpsM2dLTldVb0p0Yk1cIixcIlVodTlMZ092eUQ0bHBN",
+            "serpapi_related_content_link": "https://serpapi.com/search.json?engine=google_images_related_content&gl=us&hl=en&q=runtuhan+asia+tenggara&related_content_id=NmpsM2dLTldVb0p0Yk1cIixcIlVodTlMZ092eUQ0bHBN",
+            "source": "Berita Harian",
+            "title": "Tanah runtuh Bukit Kukus: Tunggu ...",
+            "link": "https://www.bharian.com.my/berita/kes/2018/10/488650/tanah-runtuh-bukit-kukus-tunggu-laporan-lengkap-mbpp",
+            "original": "https://assets.bharian.com.my/images/articles/TANAH_RUNTUH_DI_BUKIT_KUKUS_1540102917.jpg",
+            "original_width": 960,
+            "original_height": 573,
+            "is_product": false
+        }
+    ]
+}

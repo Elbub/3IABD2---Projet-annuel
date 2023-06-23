@@ -308,11 +308,9 @@ extern "C" fn generate_random_mpl_w(layers_ptr: *mut f32, number_of_layers: usiz
     unsafe {
         // À vérifier, mais une seed a l'air de généralement être du u64 en Rust.
         use rand::Rng;
-        println!("hello there");
         let mut rng = rand::thread_rng();   // À changer pour prendre en compte la seed fournie.
 
         let layers = std::slice::from_raw_parts(layers_ptr, number_of_layers);
-        println!("{:?}", layers);
 
 
         let total_number_of_weights = get_number_of_w(layers_ptr, number_of_layers);

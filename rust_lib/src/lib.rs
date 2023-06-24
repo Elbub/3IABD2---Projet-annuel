@@ -433,7 +433,7 @@ extern "C" fn multi_layer_perceptron_training(w_ptr: *mut f32,
                 delta.push(vec![0f32; size_of_x_0]);
 
                 for l in 1..number_of_layers { // nb layers = 3 -> l=1, l=2
-                    let size_of_x_l: usize = layers[l] as usize +1; // size of layer[2] = 2
+                    let size_of_x_l: usize = layers[l] as usize + 1; // size of layer[2] = 2
 
                     let mut x_l: Vec<f32> = Vec::with_capacity(size_of_x_l); // 2
                     x_l.push(1f32);
@@ -585,13 +585,13 @@ extern "C" fn multi_layer_perceptron_predict( w_ptr: *mut f32, // c'est le w ent
 
 
             for l in 1..number_of_layers { // nb layers = 2
-                let size_of_x_l: usize = layers[l] as usize; // size of layer[1] = 1
+                let size_of_x_l: usize = layers[l] as usize + 1; // size of layer[1] = 1
                 let mut x_l: Vec<f32> = Vec::with_capacity(size_of_x_l);
                 x_l.push(1f32);
-                for j in 0..size_of_x_l {
+                for j in 1..size_of_x_l {
                     let mut x_l_i = 0f32;
                     for i in 0..layers[l-1] as usize + 1{ // layers[0] = 2 + 1 = 3
-                        x_l_i += w[l][i][j] * x[l-1][i];
+                        x_l_i += w[l][i][j - 1] * x[l-1][i];
                     }
                     if !is_classification && l==number_of_layers-1 {
                         x_l.push(x_l_i);

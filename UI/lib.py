@@ -73,7 +73,7 @@ def get_number_of_weights(layers_list):
     return number_of_weights
 
 
-def generate_multi_layer_perceptron_model(layers_list: List[int]):    
+def generate_multi_layer_perceptron_model(layers_list: List[int]):
     layers = np.array(layers_list, dtype=ctypes.c_float)
     layers_as_c_float_array = (ctypes.c_float * len(layers))(*layers)
     number_of_layers = len(layers_as_c_float_array)
@@ -83,14 +83,43 @@ def generate_multi_layer_perceptron_model(layers_list: List[int]):
     return untrained_mlp
 
 
-def train_multi_layer_perceptron_model(model: List[float],
-                                       layers: List[float],
-                                       inputs: List[float],
-                                       labels: List[float],
+def train_multi_layer_perceptron_model(model: Union(List[float], np.array),
+                                       layers: Union(List[float], np.array),
+                                       inputs: Union(List[float], np.array),
+                                       labels: Union(List[float], np.array),
                                        learning_rate: float,
                                        number_of_epochs: float,
-                                       is_classification: bool) :
-    pass
+                                       is_classification: bool):
+    if isinstance(layers, List):
+        layers = np.array(layers, dtype=ctypes.c_float)
+    if not isinstance(layers, np.array):
+        raise ValueError
+    layers_as_c_float_array = (ctypes.c_float * len(layers))(*layers)
+    number_of_layers = len(layers_as_c_float_array)
+    pointer_to_layers = ctypes.cast(layers_as_c_float_array, POINTER_TO_FLOAT_ARRAY_TYPE)
+    
+    if isinstance(inputs, List):
+        inputs = np.array(inputs, dtype=ctypes.c_float)
+    if not isinstance(inputs, np.array):
+        raise ValueError
+    inputs_as_c_float_array = (ctypes.c_float * len(inputs))(*inputs)
+    number_of_inputs = len(inputs_as_c_float_array)
+    pointer_to_inputs = ctypes.cast(inputs_as_c_float_array, POINTER_TO_FLOAT_ARRAY_TYPE)
+    
+    if isinstance(labels, List):
+        labels = np.array(labels, dtype=ctypes.c_float)
+    if not isinstance(labels, np.array):
+        raise ValueError
+    labels_as_c_float_array = (ctypes.c_float * len(labels))(*labels)
+    number_of_labels = len(labels_as_c_float_array)
+    pointer_to_labels = ctypes.cast(labels_as_c_float_array, POINTER_TO_FLOAT_ARRAY_TYPE)
+    
+    if not isinstance(model, np.array):
+        raise ValueError
+    model_as_c_float_array = (ctypes.c_float * len(model))(*model)
+    number_of_model = len(model_as_c_float_array)
+    pointer_to_model = ctypes.cast(model_as_c_float_array, POINTER_TO_FLOAT_ARRAY_TYPE)
+    
 
 
 def predict_with_mlp() :

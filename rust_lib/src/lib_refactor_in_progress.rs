@@ -78,8 +78,8 @@ extern "C" fn generate_random_w(dimension: usize) -> *mut f32 {
 }
 
 #[no_mangle]
-// extern "C" fn linear_model_training(pointer_to_weights: *mut f32, pointer_to_labels : *mut f32, vec_of_points_ptr: *mut f32, arr_size: usize, arr_dimension: usize, learning_rate: f32, number_of_epochs: usize, is_label_list: bool, number_of_classes: usize) -> *mut f32 {
-extern "C" fn linear_model_training(pointer_to_weights: *mut f32, pointer_to_labels : *mut f32, vec_of_points_ptr: *mut f32, arr_size: usize, arr_dimension: usize, learning_rate: f32, number_of_epochs: usize) -> *mut f32 {
+// extern "C" fn linear_model_training(pointer_to_model: *mut f32, pointer_to_labels : *mut f32, vec_of_points_ptr: *mut f32, arr_size: usize, arr_dimension: usize, learning_rate: f32, number_of_epochs: usize, is_label_list: bool, number_of_classes: usize) -> *mut f32 {
+extern "C" fn linear_model_training(pointer_to_model: *mut f32, pointer_to_labels : *mut f32, vec_of_points_ptr: *mut f32, arr_size: usize, arr_dimension: usize, learning_rate: f32, number_of_epochs: usize) -> *mut f32 {
     unsafe {
         use rand::Rng;
         let vec_of_points = std::slice::from_raw_parts(vec_of_points_ptr,
@@ -87,7 +87,7 @@ extern "C" fn linear_model_training(pointer_to_weights: *mut f32, pointer_to_lab
         let labels = std::slice::from_raw_parts(pointer_to_labels,
                                                 arr_size);
         let mut w = Vec::from_raw_parts(
-            pointer_to_weights, arr_dimension + 1, arr_dimension + 1);
+            pointer_to_model, arr_dimension + 1, arr_dimension + 1);
         let mut rng = rand::thread_rng();
         for _ in 0..number_of_epochs {
             let k: usize = rng.gen_range(0..arr_size);
@@ -347,17 +347,17 @@ extern "C" fn generate_multi_layer_perceptron_model(pointer_to_layers: *mut f32,
 
 
 #[no_mangle]
-extern "C" fn train_multi_layer_perceptron_model(pointer_to_weights: *mut f32,
-                                              pointer_to_labels : *mut f32,
-                                              pointer_to_inputs: *mut f32,
-                                              number_of_inputs: usize,
-                                              dimension_of_inputs: usize,
-                                              number_of_classes_to_predict: usize,
-                                              learning_rate: f32,
-                                              number_of_epochs: usize,
-                                              pointer_to_layers: *mut f32, // forme du perceptron, ex: (2, 2, 1)
-                                              number_of_layers: usize, // nombre de couches
-                                              is_classification: bool) -> *mut f32 {
+extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
+                                                 pointer_to_layers: *mut f32,
+                                                 number_of_layers: usize,
+                                                 pointer_to_inputs: *mut f32,
+                                                 number_of_inputs: usize,
+                                                 dimension_of_inputs: usize,
+                                                 pointer_to_labels : *mut f32,
+                                                 number_of_classes: usize,
+                                                 learning_rate: f32,
+                                                 number_of_epochs: usize,
+                                                 is_classification: bool) -> *mut f32 {
     unsafe {
 
         if number_of_layers < 2 {
@@ -367,7 +367,7 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_weights: *mut f32,
         if layers[0] as usize != dimension_of_inputs {
             panic!("Wrong number of neurons in the first layer.");
         }
-        if layers[number_of_layers - 1] as usize != number_of_classes_to_predict {
+        if layers[number_of_layers - 1] as usize != number_of_classes {
             panic!("Wrong number of neurons in the last layer.");
         }
 
@@ -375,7 +375,7 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_weights: *mut f32,
 
         let mut total_number_of_weights = get_number_of_w(pointer_to_layers, number_of_layers); // = 9 pour XOR
 
-        let w_param = std::slice::from_raw_parts(pointer_to_weights, total_number_of_weights);
+        let w_param = std::slice::from_raw_parts(pointer_to_model, total_number_of_weights);
 
         let mut w_index:usize = 0;
         let mut w: Vec<Vec<Vec<f32>>> = Vec::with_capacity(number_of_layers);
@@ -405,7 +405,7 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_weights: *mut f32,
         //              [1, 0] number of inputs = 4
         //              [1, 1] donc on a bien un vecteur de taille  8
         let labels = std::slice::from_raw_parts(pointer_to_labels,
-                                                number_of_inputs * number_of_classes_to_predict);
+                                                number_of_inputs * number_of_classes);
         // labels = [-1, 1, 1, -1]
         // len = 4 * 1
         use rand::thread_rng;
@@ -434,10 +434,10 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_weights: *mut f32,
 
 
 
-                let mut y_k:Vec<f32> = Vec::with_capacity(number_of_classes_to_predict + 1); // 2
+                let mut y_k:Vec<f32> = Vec::with_capacity(number_of_classes + 1); // 2
                 y_k.push(1f32);
-                for class_number in 0..number_of_classes_to_predict { // 0..1
-                    y_k.push(labels[k * number_of_classes_to_predict + class_number]); // push
+                for class_number in 0..number_of_classes { // 0..1
+                    y_k.push(labels[k * number_of_classes + class_number]); // push
                     // y_k = [1, 1]
                 }
 
@@ -530,14 +530,14 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_weights: *mut f32,
 
 
 #[no_mangle]
-extern "C" fn predict_multi_layer_perceptron_model( pointer_to_weights: *mut f32, // c'est le w entrainé
-                                              pointer_to_inputs: *mut f32, // les données qu'on veut prédire
-                                              number_of_inputs: usize, // le nombre de données dans le pointeur d'au dessus
-                                              dimension_of_inputs: usize, // dimension des inputs
-                                              number_of_classes_to_predict: usize,
-                                              pointer_to_layers: *mut f32, // forme du perceptron, ex: (2, 2, 1)
-                                              number_of_layers: usize, // nombre de couches
-                                              is_classification: bool) -> *mut f32 {
+extern "C" fn predict_with_multi_layer_perceptron_model(pointer_to_model: *mut f32,
+                                                        pointer_to_layers: *mut f32,
+                                                        number_of_layers: usize,
+                                                        pointer_to_inputs: *mut f32,
+                                                        number_of_inputs: usize,
+                                                        dimension_of_inputs: usize,
+                                                        number_of_classes: usize,
+                                                        is_classification: bool) -> *mut f32 {
     unsafe {
 
         if number_of_layers < 2 {
@@ -547,14 +547,14 @@ extern "C" fn predict_multi_layer_perceptron_model( pointer_to_weights: *mut f32
         if layers[0] as usize != dimension_of_inputs {
             panic!("Wrong number of neurons in the first layer.");
         }
-        if layers[number_of_layers - 1] as usize != number_of_classes_to_predict {
+        if layers[number_of_layers - 1] as usize != number_of_classes {
             panic!("Wrong number of neurons in the last layer.");
         }
 
 
         let mut total_number_of_weights = get_number_of_w(pointer_to_layers, number_of_layers);
 
-        let w_param = std::slice::from_raw_parts(pointer_to_weights, total_number_of_weights);
+        let w_param = std::slice::from_raw_parts(pointer_to_model, total_number_of_weights);
 
         let mut w_index:usize = 0;
         let mut w: Vec<Vec<Vec<f32>>> = Vec::with_capacity(number_of_layers);
@@ -585,7 +585,7 @@ extern "C" fn predict_multi_layer_perceptron_model( pointer_to_weights: *mut f32
         // labels = [-1, 1, 1, -1]
         // len = 4 * 1
 
-        let mut Y : Vec<f32> = Vec::with_capacity(number_of_inputs*number_of_classes_to_predict);
+        let mut Y : Vec<f32> = Vec::with_capacity(number_of_inputs*number_of_classes);
 
         for k in 0..number_of_inputs {
 
@@ -626,7 +626,7 @@ extern "C" fn predict_multi_layer_perceptron_model( pointer_to_weights: *mut f32
             }
             // println!("x : {:?}",x);
 
-            for i in 1..number_of_classes_to_predict + 1{
+            for i in 1..number_of_classes + 1{
                 Y.push(x[number_of_layers-1][i]);
             }
 

@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import ctypes
 from typing import *
-import random
 from PIL import Image
 import os
 import time
@@ -111,6 +110,21 @@ def train_multi_layer_perceptron_model(is_classification: bool,
     if not isinstance(is_classification, bool):
         raise TypeError
     
+    if not isinstance(number_of_inputs, int):
+        raise TypeError
+    if number_of_inputs < 1 :
+        raise ValueError
+    
+    if not isinstance(dimensions_of_inputs, int):
+        raise TypeError
+    if dimensions_of_inputs < 1 :
+        raise ValueError
+    
+    if not isinstance(number_of_classes, int):
+        raise TypeError
+    if number_of_classes < 1 :
+        raise ValueError
+    
     if isinstance(layers, List):
         layers = np.array(layers, dtype=ctypes.c_float)
     if not isinstance(layers, np.ndarray):
@@ -118,57 +132,25 @@ def train_multi_layer_perceptron_model(is_classification: bool,
     number_of_layers = len(layers)
     if number_of_layers < 2 :
         raise ValueError
+    if dimensions_of_inputs != layers[0] :
+        raise ValueError
+    if number_of_classes != layers[-1] :
+        raise ValueError
     layers_as_c_float_array = (ctypes.c_float * len(layers))(*layers)
     pointer_to_layers = ctypes.cast(layers_as_c_float_array, POINTER_TO_FLOAT_ARRAY_TYPE)
     
-    if isinstance(inputs, List):
-        inputs = np.array(inputs, dtype=ctypes.c_float)
     if not isinstance(inputs, np.ndarray):
         raise TypeError
-    if len(inputs.shape) > 1 :
-        number_of_inputs = len(inputs)
-        if number_of_inputs < 1 :
-            raise ValueError
-        dimensions_of_inputs = len(inputs[0].flatten())
-        if dimensions_of_inputs < 1 :
-            raise ValueError
-        if dimensions_of_inputs != layers[0] :
-            raise ValueError
-        inputs = inputs.flatten()
-    else :
-        print(number_of_inputs, '*', dimensions_of_inputs)
-        print(len(inputs))
-        if number_of_inputs * dimensions_of_inputs != len(inputs):
-            raise ValueError
-        number_of_inputs = ctypes.c_int32(number_of_inputs)
-        dimensions_of_inputs = ctypes.c_int32(dimensions_of_inputs)
-    # print(inputs)
-    # print(len(inputs))
-    # print(number_of_inputs,  dimensions_of_inputs, number_of_inputs * dimensions_of_inputs)
+    if number_of_inputs * dimensions_of_inputs != len(inputs):
+        raise ValueError
     inputs_as_c_float_array = (ctypes.c_float * (number_of_inputs * dimensions_of_inputs))(*inputs)
     pointer_to_inputs = ctypes.cast(inputs_as_c_float_array, POINTER_TO_FLOAT_ARRAY_TYPE)
     
-    if isinstance(labels, List):
-        labels = np.array(labels, dtype=ctypes.c_float)
     if not isinstance(labels, np.ndarray):
         raise TypeError
-    if len(labels.shape) > 1 :
-        number_of_labels = len(labels)
-        if number_of_labels < 1 :
-            raise ValueError
-        if number_of_labels != number_of_inputs :
-            raise ValueError
-        number_of_classes = len(labels[0])
-        if number_of_classes < 1 :
-            raise ValueError
-        if number_of_classes != layers[-1] :
-            raise ValueError
-        labels = labels.flatten()
-    else :
-        number_of_classes = ctypes.c_int32(number_of_classes)
-        if number_of_inputs * number_of_classes != len(labels):
-            raise ValueError
-    labels_as_c_float_array = (ctypes.c_float * (number_of_labels * number_of_classes))(*labels)
+    if number_of_inputs * number_of_classes != len(labels):
+        raise ValueError
+    labels_as_c_float_array = (ctypes.c_float * (number_of_inputs * number_of_classes))(*labels)
     pointer_to_labels = ctypes.cast(labels_as_c_float_array, POINTER_TO_FLOAT_ARRAY_TYPE)
     
     if not isinstance(model, np.ndarray):
@@ -188,8 +170,12 @@ def train_multi_layer_perceptron_model(is_classification: bool,
         number_of_epochs = ctypes.c_int32(number_of_epochs)
     if not isinstance(number_of_epochs, ctypes.c_int32):
         raise TypeError
-    print(time.time() - timer)
+
+    number_of_inputs = ctypes.c_int32(number_of_inputs)
+    dimensions_of_inputs = ctypes.c_int32(dimensions_of_inputs)
+    number_of_classes = ctypes.c_int32(number_of_classes)
     print("Training...")
+    print(time.time() - timer)
     pointer_to_trained_model = rust_machine_learning_library.train_multi_layer_perceptron_model(
                                                                                                 pointer_to_model,
                                                                                                 pointer_to_layers,
@@ -212,10 +198,29 @@ def train_multi_layer_perceptron_model(is_classification: bool,
 def predict_with_multi_layer_perceptron_model(is_classification: bool,
                                               layers: Union[List[float], np.ndarray],
                                               inputs: Union[List[float], np.ndarray],
-                                              model: Union[List[float], np.ndarray]):
+                                              model: Union[List[float], np.ndarray],
+                                              number_of_inputs: int = 0,
+                                              dimensions_of_inputs: int = 0,
+                                              number_of_classes: int = 0):
     
     if not isinstance(is_classification, bool):
         raise TypeError
+    
+    if not isinstance(number_of_inputs, int):
+        raise TypeError
+    if number_of_inputs < 1 :
+        raise ValueError
+    
+    if not isinstance(dimensions_of_inputs, int):
+        raise TypeError
+    if dimensions_of_inputs < 1 :
+        raise ValueError
+    
+    if not isinstance(number_of_classes, int):
+        raise TypeError
+    if number_of_classes < 1 :
+        raise ValueError
+    
     
     if isinstance(layers, List):
         layers = np.array(layers, dtype=ctypes.c_float)
@@ -224,25 +229,14 @@ def predict_with_multi_layer_perceptron_model(is_classification: bool,
     number_of_layers = len(layers)
     if number_of_layers < 2 :
         raise ValueError
-    number_of_classes = int(layers[-1])
-    if number_of_classes < 1 :
+    if dimensions_of_inputs != layers[0] :
         raise ValueError
+    number_of_classes = int(layers[-1])
     layers_as_c_float_array = (ctypes.c_float * len(layers))(*layers)
     pointer_to_layers = ctypes.cast(layers_as_c_float_array, POINTER_TO_FLOAT_ARRAY_TYPE)
     
-    if isinstance(inputs, List):
-        inputs = np.array(inputs, dtype=ctypes.c_float)
     if not isinstance(inputs, np.ndarray):
         raise TypeError
-    number_of_inputs = len(inputs)
-    if number_of_inputs < 1 :
-        raise ValueError
-    dimensions_of_inputs = len(inputs[0].flatten())
-    if dimensions_of_inputs < 1 :
-        raise ValueError
-    if dimensions_of_inputs != layers[0] :
-        raise ValueError
-    inputs = inputs.flatten()
     inputs_as_c_float_array = (ctypes.c_float * (number_of_inputs * dimensions_of_inputs))(*inputs)
     pointer_to_inputs = ctypes.cast(inputs_as_c_float_array, POINTER_TO_FLOAT_ARRAY_TYPE)
     

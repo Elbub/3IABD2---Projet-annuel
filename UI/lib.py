@@ -2,11 +2,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 import ctypes
 from typing import *
-from PIL import Image
 import os
 import time
+from tkinter import *
+from tkinter.messagebox import *
+from PIL import Image
 
-# rust_machine_learning_library = ctypes.CDLL(r"C:\Users\Moi\Desktop\Projets\3IABD2 - Projet annuel \rust_lib\target\debug\rust_lib.dll")
+# rust_machine_learning_library = ctypes.CDLL(r"C:\Users\Moi\Desktop\Projets\3IABD2 - Projet annuel\rust_lib\target\debug\rust_lib.dll")
 rust_machine_learning_library = ctypes.CDLL(r"C:\Users\Moi\Desktop\Projets\3IABD2 - Projet annuel\rust_lib\target\release\rust_lib.dll")
 POINTER_TO_FLOAT_ARRAY_TYPE = ctypes.POINTER(ctypes.c_float)
 POINTER_TO_INT_ARRAY_TYPE = ctypes.POINTER(ctypes.c_int32)
@@ -49,9 +51,7 @@ rust_machine_learning_library.predict_with_multi_layer_perceptron_model.argtypes
 rust_machine_learning_library.predict_with_multi_layer_perceptron_model.restype = ctypes.POINTER(ctypes.c_float)
 
 
-def read_dataset(dataset_folders: Union[str, List[str]]):
-    if isinstance(dataset_folders, str) :
-        dataset_folders = [dataset_folders]
+def read_only_train_dataset(dataset_folders: Union[str, List[str]]):
     inputs = []
     labels = []
     number_of_inputs = 0
@@ -66,12 +66,62 @@ def read_dataset(dataset_folders: Union[str, List[str]]):
                         number_of_inputs += 1
                         labels.append([1. if index == dataset_class else -1 for index in range(len(dataset_folders))])
         except FileNotFoundError :
-            print("Wrong path")
+            showerror(f"Wrong path", f"{dataset_folders[dataset_class]} could not be found.")
             raise
     inputs = np.array(inputs, dtype=ctypes.c_float).flatten()  / 255 * 2 - 1
     # inputs = np.array([input / 255 * 2 - 1 for input in inputs])
     labels = np.array(labels, dtype=ctypes.c_float).flatten()
     return (inputs, number_of_inputs, labels)
+    
+
+def read_both_datasets(dataset_folders: List[List[str]]):
+    train_inputs = []
+    tests_inputs = []
+    train_labels = []
+    tests_labels = []
+    number_of_train_inputs = 0
+    number_of_tests_inputs = 0
+    for dataset_class in range(len(dataset_folders)):
+        try :
+            dataset_folder = os.listdir(dataset_folders[dataset_class][0])
+            for filename in dataset_folder:
+                if 'image' in filename:
+                    with Image.open(os.path.join(dataset_folders[dataset_class][0], filename)) as filename :
+                        # print(filename)
+                        train_inputs.append(np.asarray(filename))
+                        number_of_train_inputs += 1
+                        train_labels.append([1. if index == dataset_class else -1 for index in range(len(dataset_folders))])
+        except FileNotFoundError :
+            showerror(f"Wrong path", f"{dataset_folders[dataset_class][0]} could not be found.")
+            raise
+        try :
+            dataset_folder = os.listdir(dataset_folders[dataset_class][1])
+            for filename in dataset_folder:
+                if 'image' in filename:
+                    with Image.open(os.path.join(dataset_folders[dataset_class][1], filename)) as filename :
+                        # print(filename)
+                        tests_inputs.append(np.asarray(filename))
+                        number_of_tests_inputs += 1
+                        tests_labels.append([1. if index == dataset_class else -1 for index in range(len(dataset_folders))])
+        except FileNotFoundError :
+            showerror(f"Wrong path", f"{dataset_folders[dataset_class][1]} could not be found.")
+            raise
+    train_inputs = np.array(train_inputs, dtype=ctypes.c_float).flatten()  / 255 * 2 - 1
+    tests_inputs = np.array(tests_inputs, dtype=ctypes.c_float).flatten()  / 255 * 2 - 1
+    # inputs = np.array([input / 255 * 2 - 1 for input in inputs])
+    train_labels = np.array(train_labels, dtype=ctypes.c_float).flatten()
+    tests_labels = np.array(tests_labels, dtype=ctypes.c_float).flatten()
+    return (train_inputs, train_labels, number_of_train_inputs, tests_inputs, tests_labels, number_of_tests_inputs)
+    
+
+def read_dataset(dataset_folders: Union[str, List[str], List[List[str]]]):
+    if not dataset_folders :
+        return
+    if isinstance(dataset_folders, str) :
+        dataset_folders = [dataset_folders]
+    if isinstance(dataset_folders[0], str) :
+        return read_only_train_dataset(dataset_folders)
+    return read_both_datasets(dataset_folders)
 
 
 def resize_images():

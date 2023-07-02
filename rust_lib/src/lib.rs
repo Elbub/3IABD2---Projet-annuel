@@ -308,7 +308,7 @@ extern "C" fn generate_random_mpl_w(layers_ptr: *mut f32, number_of_layers: usiz
         let mut w: Vec<f32> = Vec::with_capacity(total_number_of_weights);
 
         for _ in 0..total_number_of_weights {
-            w.push(rng.gen_range(-1f32..1f32));
+            w.push(rng.gen_range((-0.1f32/layers[0])..(0.1f32/layers[0])));
         }
         // for l in 0..(number_of_layers - 1) { // on calcule d'une couche à la suivante, donc on ne prend pas la première.
         //     // 3 -> 0 à 2
@@ -666,11 +666,14 @@ fn multi_layer_perceptron_predict_test( w:  Vec<Vec<Vec<f32>>>, // c'est le w en
                 for j in 1..size_of_x_l {
                     let mut x_l_i = 0f32;
                     for i in 0..layers[l-1] as usize + 1{ // layers[0] = 2 + 1 = 3
+                        println!("x_l_i in loop {:?}", x_l_i);
                         x_l_i += w[l][i][j - 1] * x[l-1][i];
                     }
                     if !is_classification && l==number_of_layers-1 {
                         x_l.push(x_l_i);
                     } else {
+                        println!("x_l_i {:?}", x_l_i);
+                        println!("x_l_i tanh {:?}", x_l_i.tanh());
                         x_l.push(x_l_i.tanh());
                     }
                 }
@@ -715,6 +718,7 @@ extern "C" fn multi_layer_perceptron_accuracy(w_ptr: *mut f32,
             panic!("Wrong number of neurons in the last layer.");
         }
 
+        println!("layers = {:?}", layers);
 
         let mut total_number_of_weights = get_number_of_w(layers_ptr, number_of_layers); // = 9 pour XOR
 
@@ -820,29 +824,50 @@ extern "C" fn multi_layer_perceptron_accuracy(w_ptr: *mut f32,
                         }
                         // println!("x_l : {:?}", x_l);
                     }
+                    println!("value of x_l {:?}", x_l);
                     x.push(x_l);
                     // x = [x_1]
                     delta.push(vec![0f32; size_of_x_l]);
 
                 }
+
                 let L = number_of_layers - 1; // L = 2
                 let size_of_delta_L = layers[L] as usize + 1; // == 2
+                // println!("size_of_delta_L {:?}", size_of_delta_L);
                 for j in 1..size_of_delta_L{ // j in 1..2
-                    delta[L][j] = x[L][j] - y_k[j]; // [1, -1, -1], [1,-1,-1]
-                    // delta = [0, 0, 0]
-                    for value in &delta[L] {
-                        if *value >= 1. || *value <= -1. {
-                            error_train += 1;
-                            break;
-                        }
-                    }
-
 
                     if is_classification {
                         // delta[L-j+1][j-1] = (1f32 - x[L-j+1][j] * x[L-j+1][j]) * (x[L-j+1][j] - y_k[j]);
-                        delta[L][j] *= 1f32 - x[L][j] * x[L][j];
+                        delta[L][j] = (1f32 - x[L][j] * x[L][j]) * (x[L][j] - y_k[j]);
+                    } else {
+                        // delta[L-j+1][j-1] = x[L-j+1][j] - y_k[j];
+                        delta[L][j] = x[L][j] - y_k[j];
                     }
+
+
+                    // delta[L][j] = x[L][j] - y_k[j]; // [1, -1, -1], [1,-1,-1]
+
+                    // delta = [0, 0, 0]
+                    //
+                    // for value in &delta[L] {
+                    //     // if *value >= 1. || *value <= -1. {
+                    //     error_train += 1;
+                    //     //     break;
+                    //     // }
+                    // }
+
+
+                    // if is_classification {
+                    //     // delta[L-j+1][j-1] = (1f32 - x[L-j+1][j] * x[L-j+1][j]) * (x[L-j+1][j] - y_k[j]);
+                    //     delta[L][j] *= 1f32 - x[L][j] * x[L][j];
+                    // }
+                    // println!("delta[L][j] = {:?}", delta[L][j]);
+                    // println!("&delta[L] = {:?}", delta[L]);
+                    // println!("x[L][j] = {:?}", x[L][j]);
+                    // println!("y_k[j] = {:?}", y_k[j]);
+                    // println!("x[L][j] - y_k[j] = {:?}", x[L][j] - y_k[j]);
                 }
+                println!("FINAL delta[L] = {:?}", delta[L]);
 
                 for l in (1..number_of_layers).rev() { // l in 1..2 -> l = 1
                     for i in 0..layers[l - 1] as usize + 1{ // i in 0..3
@@ -871,16 +896,16 @@ extern "C" fn multi_layer_perceptron_accuracy(w_ptr: *mut f32,
             println!("nbr of errors: {:?}", error_train);
             println!("pourcentage d'erreur: {:?}", accuracy);
 
-            let Y_test_ptr = multi_layer_perceptron_predict_test(w.clone(),inputs_test.clone(),
+            let Y_test_ptr = multi_layer_perceptron_predict_test(w.clone(),inputs_test,
                                                              number_of_inputs_test,dimension_of_inputs,
                                                              number_of_classes_to_predict,layers,number_of_layers, is_classification);
 
-            let Y_test = std::slice::from_raw_parts(Y_test_ptr, number_of_inputs_test);
+            let Y_test = std::slice::from_raw_parts(Y_test_ptr, number_of_inputs_test*number_of_classes_to_predict);
 
             let mut error_test = 0;
 
-            for i in (0..number_of_inputs_test).step_by(dimension_of_inputs) {
-                for j in 0..dimension_of_inputs {
+            for i in (0..(number_of_inputs_test*number_of_classes_to_predict)).step_by(number_of_classes_to_predict) {
+                for j in 0..number_of_classes_to_predict {
                     let delta_test = labels_test[i+j] - Y_test[i+j];
                     if delta_test >= 1. || delta_test <= -1. {
                         error_test += 1;

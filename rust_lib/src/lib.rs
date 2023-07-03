@@ -450,6 +450,8 @@ extern "C" fn multi_layer_perceptron_training(w_ptr: *mut f32,
                         if !is_classification && l==number_of_layers-1 {
                             x_l.push(x_l_i);
                         } else {
+                            println!("x_l_i {:?}", x_l_i);
+                            println!("x_l_i tanh {:?}", x_l_i.tanh());
                             x_l.push(x_l_i.tanh());
                             // x_1 = [1, 0.8, 1, -0.7]
                         }
@@ -666,14 +668,11 @@ fn multi_layer_perceptron_predict_test( w:  Vec<Vec<Vec<f32>>>, // c'est le w en
                 for j in 1..size_of_x_l {
                     let mut x_l_i = 0f32;
                     for i in 0..layers[l-1] as usize + 1{ // layers[0] = 2 + 1 = 3
-                        println!("x_l_i in loop {:?}", x_l_i);
                         x_l_i += w[l][i][j - 1] * x[l-1][i];
                     }
                     if !is_classification && l==number_of_layers-1 {
                         x_l.push(x_l_i);
                     } else {
-                        println!("x_l_i {:?}", x_l_i);
-                        println!("x_l_i tanh {:?}", x_l_i.tanh());
                         x_l.push(x_l_i.tanh());
                     }
                 }
@@ -819,12 +818,14 @@ extern "C" fn multi_layer_perceptron_accuracy(w_ptr: *mut f32,
                         if !is_classification && l==number_of_layers-1 {
                             x_l.push(x_l_i);
                         } else {
+                            println!("x_l_i {:?}", x_l_i);
+                            println!("x_l_i tanh {:?}", x_l_i.tanh());
                             x_l.push(x_l_i.tanh());
                             // x_1 = [1, 0.8, 1, -0.7]
                         }
                         // println!("x_l : {:?}", x_l);
                     }
-                    println!("value of x_l {:?}", x_l);
+                    // println!("value of x_l {:?}", x_l);
                     x.push(x_l);
                     // x = [x_1]
                     delta.push(vec![0f32; size_of_x_l]);
@@ -834,6 +835,7 @@ extern "C" fn multi_layer_perceptron_accuracy(w_ptr: *mut f32,
                 let L = number_of_layers - 1; // L = 2
                 let size_of_delta_L = layers[L] as usize + 1; // == 2
                 // println!("size_of_delta_L {:?}", size_of_delta_L);
+
                 for j in 1..size_of_delta_L{ // j in 1..2
 
                     if is_classification {
@@ -849,12 +851,7 @@ extern "C" fn multi_layer_perceptron_accuracy(w_ptr: *mut f32,
 
                     // delta = [0, 0, 0]
                     //
-                    // for value in &delta[L] {
-                    //     // if *value >= 1. || *value <= -1. {
-                    //     error_train += 1;
-                    //     //     break;
-                    //     // }
-                    // }
+
 
 
                     // if is_classification {
@@ -868,7 +865,12 @@ extern "C" fn multi_layer_perceptron_accuracy(w_ptr: *mut f32,
                     // println!("x[L][j] - y_k[j] = {:?}", x[L][j] - y_k[j]);
                 }
                 println!("FINAL delta[L] = {:?}", delta[L]);
-
+                for value in &delta[L] {
+                    if *value >= 1. || *value <= -1. {
+                        error_train += 1;
+                        break;
+                    }
+                }
                 for l in (1..number_of_layers).rev() { // l in 1..2 -> l = 1
                     for i in 0..layers[l - 1] as usize + 1{ // i in 0..3
                         let mut weighed_sum_of_errors = 0f32;

@@ -1,6 +1,8 @@
 // mod multy_layer_perceptron;
 
+use std::fs::File;
 use nalgebra::DMatrix;
+use std::io::{self, Write}; // bring trait into scope
 
 #[no_mangle]
 pub extern "C" fn points_array(number_of_points: usize, dimension: usize) -> *mut f32{
@@ -687,6 +689,17 @@ fn multi_layer_perceptron_predict_test( w:  Vec<Vec<Vec<f32>>>, // c'est le w en
         // arr_slice.as_mut_ptr()
 }
 
+//
+fn write_accuracy(my_vec: Vec<Vec<f32>>) -> io::Result<()> {
+    let mut file = File::create("saved_accuracy.txt")?;
+    for row in &my_vec {
+        for &value in row{
+            write!(file, "{},", value)?;
+        }
+        writeln!(file)?;
+    }
+    Ok(())
+}
 
 #[no_mangle]
 extern "C" fn multi_layer_perceptron_accuracy(w_ptr: *mut f32,
@@ -763,11 +776,15 @@ extern "C" fn multi_layer_perceptron_accuracy(w_ptr: *mut f32,
         use rand::thread_rng;
         use rand::seq::SliceRandom;
 
+        let mut accuracy_vec_train: Vec<f32> = Vec::with_capacity(epoch);
+        let mut accuracy_vec_test: Vec<f32> = Vec::with_capacity(epoch);
+
         for numero_epoch in 0..epoch {
             println!("epoch:{:?}",numero_epoch + 1);
 
             let mut randomly_ordered_dataset: Vec<usize> = (0..number_of_inputs).collect();
             randomly_ordered_dataset.shuffle(&mut thread_rng());
+
 
             let mut error_train = 0;
             for k in randomly_ordered_dataset {
@@ -876,6 +893,7 @@ extern "C" fn multi_layer_perceptron_accuracy(w_ptr: *mut f32,
             let accuracy:f32 = error_train as f32/number_of_inputs as f32;
             println!("nbr of errors: {:?}", error_train);
             println!("pourcentage d'erreur: {:?}", accuracy);
+            accuracy_vec_train.push( accuracy);
 
             let Y_test = multi_layer_perceptron_predict_test(w.clone(),inputs_test.clone(),
                                                              number_of_inputs_test,dimension_of_inputs,
@@ -897,8 +915,16 @@ extern "C" fn multi_layer_perceptron_accuracy(w_ptr: *mut f32,
             let accuracy_test:f32 = error_test as f32/number_of_inputs_test as f32;
             println!("nbr of errors test: {:?}", error_test);
             println!("pourcentage d'erreur test: {:?}", accuracy_test);
-        }
+            accuracy_vec_test.push(accuracy_test);
 
+        }
+        let mut accuracy_vec : Vec<Vec<f32>>  = Vec::with_capacity(2);
+        accuracy_vec.push(accuracy_vec_train);
+        accuracy_vec.push(accuracy_vec_test);
+
+        write_accuracy(accuracy_vec).expect("dosnt work");
+
+        // write_accuracy(&accuracy_vec).expect("doesn't work");
         let mut w_return = Vec::with_capacity(total_number_of_weights);
         // total_number_of_weights = 3
         for l /*layer*/ in 1..number_of_layers { // on calcule d'une couche à la suivante, donc on ne prend pas la première.

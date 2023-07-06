@@ -10,6 +10,7 @@ from screeninfo import get_monitors
 import matplotlib.pyplot as plt
 
 ### Opérations sur les fichiers
+import numpy as np
 import os
 from os.path import normpath
 from PIL import Image
@@ -151,7 +152,23 @@ def fonction_principale():
         filepath = asksaveasfilename(initialdir = MODELS_SAVE_FOLDER, filetypes = [("fichier json", "*.json")], defaultextension = ".json")
         if filepath :
             with open(filepath, 'w') as model_file :
-                dump(model, model_file)
+                new_model = {}
+                if isinstance(model["weights"], np.ndarray) :
+                    new_model["weights"] = model["weights"].tolist()
+                else :
+                    new_model["weights"] = model["weights"]
+                new_model["error_and_accuracy"] = model["error_and_accuracy"]
+                new_model["model_type"] = model["model_type"]
+                new_model["is_classification"] = model["is_classification"]
+                new_model["inputs_width"] = model["inputs_width"]
+                new_model["inputs_height"] = model["inputs_height"]
+                new_model["inputs_color"] = model["inputs_color"]
+                if isinstance(new_model["layers"], np.ndarray) :
+                    new_model["layers"] = model["layers"].tolist()
+                else :
+                    new_model["layers"] = model["layers"]
+                new_model["dataset_folders"] = model["dataset_folders"]
+                dump(new_model, model_file)
             return True
     #V
     
@@ -411,7 +428,7 @@ def fonction_principale():
             """
             nonlocal model
             if (model["model_type"] != model_type.get()
-                or model["layers"] != layers
+                or (model["layers"].tolist() if isinstance(model["layers"], np.ndarray) else model["layers"]) != layers
                 or model["is_classification"] != is_classification.get()
                 or model["inputs_width"] != inputs_width.get()
                 or model["inputs_height"] != inputs_height.get()
@@ -451,8 +468,14 @@ def fonction_principale():
                         new_model["weights"] = []
                         new_model["error_and_accuracy"] = []
                     else :
-                        new_model["weights"] = model["weights"]
-                        new_model["error_and_accuracy"] = model["error_and_accuracy"]
+                        if isinstance(model["weights"], np.ndarray) :
+                            new_model["weights"] = model["weights"].tolist()
+                        else :
+                            new_model["weights"] = model["weights"]
+                        if isinstance(model["error_and_accuracy"], np.ndarray) :
+                            new_model["error_and_accuracy"] = model["error_and_accuracy"].tolist()
+                        else :
+                            new_model["error_and_accuracy"] = model["error_and_accuracy"]
                     new_model["model_type"] = model_type.get()
                     new_model["is_classification"] = is_classification.get()
                     new_model["inputs_width"] = inputs_width.get()
@@ -535,7 +558,10 @@ def fonction_principale():
         inputs_color.set(model["inputs_color"])
         number_of_classes = StringVar()
         number_of_classes.set(model["layers"][-1])
-        layers = model["layers"].copy()
+        if isinstance(model["layers"], np.ndarray) :
+            layers = model["layers"].to_list()
+        else :
+            layers = model["layers"]
         
         model_type_frame = LabelFrame(entries_window, text = "Model type :")
         model_type_frame.grid(row = 1, columnspan = 7, column = 0, padx = 10, pady = 10)
@@ -574,7 +600,7 @@ def fonction_principale():
         
         
         Button(entries_window, text = "Cancel", command = entries_window.destroy).grid(row = 5, column = 0, padx =5, pady =5)
-        Button(entries_window, text = "Load model", command = lambda : [load_model_from_file(), main_window.after(1, model_configuration), entries_window.destroy()]).grid(row = 5, column = 1, columnspan = 2, padx =5, pady =5)
+        Button(entries_window, text = "Load model", command = lambda : [entries_window.destroy(), load_model_from_file(), update_model_display_frame()]).grid(row = 5, column = 1, columnspan = 2, padx =5, pady =5)
         Button(entries_window, text = "Save model", command = save_edited_model_as_file).grid(row = 5, column = 3, columnspan = 2, padx =5, pady =5)
         Button(entries_window, text = "Ok", command = validate_entries).grid(row = 5, column = 5 , padx =5, pady =5)
 
@@ -758,11 +784,6 @@ def fonction_principale():
     main_window = Tk()
     main_window.title("C'est la classe ! Mais laquelle ?")
     main_window.protocol("WM_DELETE_WINDOW", save_and_quit)
-
-    # Variables nécessaires à l'enregistrement
-
-    choix_des_documents_a_enregistrer = IntVar()
-    sauvegarde_effectue = False
 
     ##### Organisation de l'affichage #####
     screen_list = get_monitors()

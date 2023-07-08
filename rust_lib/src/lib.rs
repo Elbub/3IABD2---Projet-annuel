@@ -900,9 +900,11 @@ extern "C" fn multi_layer_perceptron_accuracy(w_ptr: *mut f32,
                                                              number_of_classes_to_predict,layers,number_of_layers, is_classification);
 
             // let Y_test = std::slice::from_raw_parts(Y_test_ptr, number_of_inputs_test);
-
+            println!("Y_test = {:?}", Y_test);
             let mut error_test = 0;
-
+            // let mut error_0 = 0;
+            // let mut error_1 = 0;
+            // let mut error_2 = 0;
             for i in (0..(number_of_inputs_test * number_of_classes_to_predict)).step_by(number_of_classes_to_predict) {
                 for j in 0..number_of_classes_to_predict {
                     let delta_test = labels_test[i+j] - Y_test.clone()[i+j];

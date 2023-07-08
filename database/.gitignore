@@ -4,3 +4,5 @@
 data/*
 resized_dataset/*/*.jpg
 resized_dataset/*
+Test/*
+Train/*

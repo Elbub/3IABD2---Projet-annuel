@@ -127,7 +127,6 @@ def _check_entry_string(new_value):
 ##########################
 def fonction_principale():
     
-    
     def load_model_from_file():
         """FR : Ouvre une fenêtre de sélection de fichier pour choisir une liste de consignes à charger.
         
@@ -674,13 +673,17 @@ def fonction_principale():
         model["weights"] = lib.train_multi_layer_perceptron_model(model["is_classification"],
                                                                   model["layers"],
                                                                   current_train_inputs,
+                                                                  current_tests_inputs,
                                                                   current_train_labels,
+                                                                  current_tests_labels,
                                                                   model["weights"],
                                                                   current_learning_rate,
                                                                   current_number_of_epochs,
                                                                   current_number_of_train_inputs,
+                                                                  current_number_of_tests_inputs,
                                                                   model["layers"][0],
-                                                                  len(model["dataset_folders"]))
+                                                                  len(model["dataset_folders"]),
+                                                                  current_batch_size)
         #TODO : implement loss data retrieving. Something like `model[""] = load loss json` should do it
     #PV
     

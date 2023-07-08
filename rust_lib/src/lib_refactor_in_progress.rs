@@ -637,20 +637,20 @@ fn save_accuracy_and_losses_as_file(accuracies_and_losses: AccuraciesAndLosses) 
 
 #[no_mangle]
 extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
-                                              pointer_to_layers: *mut f32,
-                                              number_of_layers: usize,
-                                              pointer_to_training_inputs: *mut f32,
-                                              number_of_training_inputs: usize,
-                                              pointer_to_tests_inputs: *mut f32,
-                                              number_of_tests_inputs: usize,
-                                              dimension_of_inputs: usize,
-                                              pointer_to_training_labels : *mut f32,
-                                              pointer_to_tests_labels : *mut f32,
-                                              number_of_classes: usize,
-                                              learning_rate: f32,
-                                              number_of_epochs: usize,
-                                              batch_size: usize,
-                                              is_classification: bool) -> *mut f32 {
+                                                 pointer_to_layers: *mut f32,
+                                                 number_of_layers: usize,
+                                                 pointer_to_training_inputs: *mut f32,
+                                                 number_of_training_inputs: usize,
+                                                 pointer_to_tests_inputs: *mut f32,
+                                                 number_of_tests_inputs: usize,
+                                                 dimension_of_inputs: usize,
+                                                 pointer_to_training_labels : *mut f32,
+                                                 pointer_to_tests_labels : *mut f32,
+                                                 number_of_classes: usize,
+                                                 learning_rate: f32,
+                                                 number_of_epochs: usize,
+                                                 batch_size: usize,
+                                                 is_classification: bool) -> *mut f32 {
     unsafe {
         if batch_size == 0 {
             panic!("Batch size must be at least 1.");

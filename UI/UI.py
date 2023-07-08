@@ -715,7 +715,7 @@ def fonction_principale():
                 if abs(predicted_dataset[i][j] - labels_to_predict[i][j]) >= 1 :
                     total_error += 1
                     break
-        print(total_error, total_error / current_number_of_tests_inputs)
+        print(total_error, current_number_of_tests_inputs, total_error / current_number_of_tests_inputs * 100)
     #N
     
     def train_model():

@@ -1,6 +1,17 @@
 // mod multy_layer_perceptron;
 
 use nalgebra::DMatrix;
+use std::fs::File;
+use std::io::{self, Write};
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize)]
+struct AccuraciesAndLosses {
+    training_accuracy: Vec<f32>,
+    training_loss: Vec<f32>,
+    tests_accuracy: Vec<f32>,
+    tests_loss: Vec<f32>,
+}
 
 #[no_mangle]
 pub extern "C" fn points_array(number_of_points: usize, dimension: usize) -> *mut f32{
@@ -32,11 +43,11 @@ extern "C" fn delete_float_array(arr: *mut f32 , arr_len: i32) {
 }
 
 #[no_mangle]
-extern "C" fn points_label(vec_of_points_ptr: *mut f32, arr_size: usize, arr_dimension: usize) -> *mut f32{
+extern "C" fn points_label(pointer_to_vec_of_points: *mut f32, arr_size: usize, arr_dimension: usize) -> *mut f32{
 
     unsafe {
         let mut vec_of_labels: Vec<f32> = Vec::with_capacity(arr_size);
-        let vec_of_points = std::slice::from_raw_parts(vec_of_points_ptr,
+        let vec_of_points = std::slice::from_raw_parts(pointer_to_vec_of_points,
                                                 arr_size*arr_dimension);
 
 
@@ -78,11 +89,10 @@ extern "C" fn generate_random_w(dimension: usize) -> *mut f32 {
 }
 
 #[no_mangle]
-// extern "C" fn linear_model_training(pointer_to_model: *mut f32, pointer_to_labels : *mut f32, vec_of_points_ptr: *mut f32, arr_size: usize, arr_dimension: usize, learning_rate: f32, number_of_epochs: usize, is_label_list: bool, number_of_classes: usize) -> *mut f32 {
-extern "C" fn linear_model_training(pointer_to_model: *mut f32, pointer_to_labels : *mut f32, vec_of_points_ptr: *mut f32, arr_size: usize, arr_dimension: usize, learning_rate: f32, number_of_epochs: usize) -> *mut f32 {
+extern "C" fn linear_model_training(pointer_to_model: *mut f32, pointer_to_labels : *mut f32, pointer_to_vec_of_points: *mut f32, arr_size: usize, arr_dimension: usize, learning_rate: f32, number_of_epochs: usize) -> *mut f32 {
     unsafe {
         use rand::Rng;
-        let vec_of_points = std::slice::from_raw_parts(vec_of_points_ptr,
+        let vec_of_points = std::slice::from_raw_parts(pointer_to_vec_of_points,
                                                        arr_size * arr_dimension);
         let labels = std::slice::from_raw_parts(pointer_to_labels,
                                                 arr_size);
@@ -143,14 +153,14 @@ extern "C" fn linear_model_training(pointer_to_model: *mut f32, pointer_to_label
 }
 
 #[no_mangle]
-extern "C" fn find_w_linear_regression(x_ptr: *mut f32, y_ptr: *mut f32, nombre_lignes_x: usize, nombre_colonnes_x: usize, nombre_lignes_y:usize, nombre_colonnes_y: usize) -> *mut f32 {
+extern "C" fn find_w_linear_regression(pointer_to_x: *mut f32, pointer_to_y: *mut f32, nombre_lignes_x: usize, nombre_colonnes_x: usize, nombre_lignes_y:usize, nombre_colonnes_y: usize) -> *mut f32 {
     unsafe {
         // let mut w = Vec::with_capacity(nombre_lignes_x_et_y);
         use nalgebra::*;
         use rand::Rng;
 
-        let x_vect = std::slice::from_raw_parts(x_ptr, nombre_lignes_x * nombre_colonnes_x);
-        let y_vect = std::slice::from_raw_parts(y_ptr, nombre_lignes_y * nombre_colonnes_y);
+        let x_vect = std::slice::from_raw_parts(pointer_to_x, nombre_lignes_x * nombre_colonnes_x);
+        let y_vect = std::slice::from_raw_parts(pointer_to_y, nombre_lignes_y * nombre_colonnes_y);
         let mut x_mat:DMatrix<f32> = DMatrix::zeros(nombre_lignes_x, nombre_colonnes_x + 1);
         let mut y_mat:DMatrix<f32> = DMatrix::zeros(nombre_lignes_y, nombre_colonnes_y);
 
@@ -210,13 +220,13 @@ extern "C" fn find_w_linear_regression(x_ptr: *mut f32, y_ptr: *mut f32, nombre_
 
 
 #[no_mangle]
-extern "C" fn predict_linear_model(vec_to_predict_ptr: *const f32, trained_model_ptr: *mut f32, arr_size: usize, arr_dimension: usize) -> *mut f32{
+extern "C" fn predict_linear_model(pointer_to_vec_to_predict: *const f32, pointer_to_trained_model: *mut f32, arr_size: usize, arr_dimension: usize) -> *mut f32{
     unsafe{
-        let vec_to_predict = std::slice::from_raw_parts(vec_to_predict_ptr,
+        let vec_to_predict = std::slice::from_raw_parts(pointer_to_vec_to_predict,
                                                        arr_size*arr_dimension);
 
 
-        let trained_model = std::slice::from_raw_parts(trained_model_ptr, arr_dimension + 1);
+        let trained_model = std::slice::from_raw_parts(pointer_to_trained_model, arr_dimension + 1);
 
         let mut predicted_labels = Vec::with_capacity(arr_size);
 
@@ -237,10 +247,10 @@ extern "C" fn predict_linear_model(vec_to_predict_ptr: *const f32, trained_model
 }
 
 #[no_mangle]
-extern "C" fn x_transpose_times_x(x_ptr: *mut f32, longueur_x: usize, colonnes_x: usize) -> *mut f32 {
+extern "C" fn x_transpose_times_x(pointer_to_x: *mut f32, longueur_x: usize, colonnes_x: usize) -> *mut f32 {
     unsafe {
         use nalgebra::*;
-        let x_vect = std::slice::from_raw_parts(x_ptr, longueur_x * colonnes_x);
+        let x_vect = std::slice::from_raw_parts(pointer_to_x, longueur_x * colonnes_x);
         let mut x_mat:DMatrix<f32> = DMatrix::zeros(longueur_x, colonnes_x);
 
         for i in 0..(longueur_x) {
@@ -322,7 +332,7 @@ extern "C" fn generate_multi_layer_perceptron_model(pointer_to_layers: *mut f32,
 
 
 #[no_mangle]
-extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
+extern "C" fn train_multi_layer_perceptron_model_old(pointer_to_model: *mut f32,
                                                  pointer_to_layers: *mut f32,
                                                  number_of_layers: usize,
                                                  pointer_to_inputs: *mut f32,
@@ -352,20 +362,19 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
 
         let mut w_index:usize = 0;
         let mut w: Vec<Vec<Vec<f32>>> = Vec::with_capacity(number_of_layers);
-        w.push(Vec::from(Vec::new())); // à chaque fois on veut avoir un w[l][i][j] avec rien dans notre couche l
+        w.push(Vec::from(Vec::new())); // W[0] n'existe pas.
 
-        for l /*layer*/ in 0..(number_of_layers - 1) { // on calcule d'une couche à la suivante, donc on ne prend pas la première. XOR -> nb_layers = 3 donc l in 0..2
-            let size_of_w_l: usize = layers[l] as usize + 1; // on a rajouté 1 pour le biais
-            //l = 0 -> size_of_w_l = 3 , l=1 -> size_of_w_l = 3
+        for l /*layer*/ in 0..(number_of_layers - 1) { // On calcule d'une couche à la suivante, donc on ne prend pas la première.
+            let size_of_w_l: usize = layers[l] as usize + 1; // On rajoute 1 pour le neurone de biais
             let mut w_l: Vec<Vec<f32>> = Vec::with_capacity(size_of_w_l);
-            for i in 0..size_of_w_l { // l = 0 -> i in 0..3 , l=1 -> i in 0..3
-                let size_of_w_l_i: usize = layers[l + 1] as usize; // = 2 / 1
+            for i in 0..size_of_w_l {
+                let size_of_w_l_i: usize = layers[l + 1] as usize;
                 let mut w_l_i: Vec<f32> = Vec::with_capacity(size_of_w_l_i);
-                for j in 0..size_of_w_l_i { // j in 0..2 / j in 0..1
-                    w_l_i.push(w_param[w_index]); // w_param[0], w_param[1], w_param[2]
+                for j in 0..size_of_w_l_i {
+                    w_l_i.push(w_param[w_index]);
                     w_index += 1;
                 }
-                w_l.push(w_l_i); // w = [[w_param[0],w_param[1]],[w_param[2]]]
+                w_l.push(w_l_i);
             }
             w.push(w_l);
         }
@@ -373,14 +382,8 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
 
         let inputs_data = std::slice::from_raw_parts(pointer_to_inputs,
                                                        number_of_inputs * dimension_of_inputs);
-        // pointer_to_inputs = [0, 0]
-        //              [0, 1] dimension of inputs = 2
-        //              [1, 0] number of inputs = 4
-        //              [1, 1] donc on a bien un vecteur de taille  8
         let labels = std::slice::from_raw_parts(pointer_to_labels,
                                                 number_of_inputs * number_of_classes);
-        // labels = [-1, 1, 1, -1]
-        // len = 4 * 1
         use rand::thread_rng;
         use rand::seq::SliceRandom;
 
@@ -390,99 +393,76 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
 
 
             for k in randomly_ordered_dataset {
-
-                let mut x : Vec<Vec<f32>> = Vec::with_capacity(number_of_layers); // nb_layers = 3
-                // x est la totalité de nos x
-
-                let size_of_x_0: usize = layers[0] as usize + 1; // size_of_x_0 = 2 + 1 = 3
+                let mut x : Vec<Vec<f32>> = Vec::with_capacity(number_of_layers);
+                let size_of_x_0: usize = layers[0] as usize + 1;
                 let mut x_0: Vec<f32> = Vec::with_capacity(size_of_x_0);
                 x_0.push(1f32);
-                for j in 0..(size_of_x_0-1) { // 0..2
-                    // x_0 = [1, 1, 0]
-                    x_0.push(inputs_data[k * dimension_of_inputs + j]); // inputs = [0, 0, 0, 1, 1, 0, 1, 1]
+                for j in 0..(size_of_x_0-1) {
+                    x_0.push(inputs_data[k * dimension_of_inputs + j]);
                 }
-                x.push(x_0); // x = [[1, 1, 0]]
+                x.push(x_0);
 
-
-
-                let mut y_k:Vec<f32> = Vec::with_capacity(number_of_classes + 1); // 2
+                let mut y_k:Vec<f32> = Vec::with_capacity(number_of_classes + 1);
                 y_k.push(1f32);
-                for class_number in 0..number_of_classes { // 0..1
-                    y_k.push(labels[k * number_of_classes + class_number]); // push
-                    // y_k = [1, 1]
+                for class_number in 0..number_of_classes {
+                    y_k.push(labels[k * number_of_classes + class_number]);
                 }
 
-
-
-                let mut delta : Vec<Vec<f32>> = Vec::with_capacity(number_of_layers); // 3
+                let mut delta : Vec<Vec<f32>> = Vec::with_capacity(number_of_layers);
                 delta.push(vec![0f32; size_of_x_0]);
 
-                for l in 1..number_of_layers { // nb layers = 3 -> l=1, l=2
-                    let size_of_x_l: usize = layers[l] as usize +1; // size of layer[2] = 2
+                for l in 1..number_of_layers {
+                    let size_of_x_l: usize = layers[l] as usize +1;
 
-                    let mut x_l: Vec<f32> = Vec::with_capacity(size_of_x_l); // 2
+                    let mut x_l: Vec<f32> = Vec::with_capacity(size_of_x_l);
                     x_l.push(1f32);
-                    // x_1=[1, ]
-                    for j in 1..size_of_x_l { // 1..3
+                    for j in 1..size_of_x_l {
                         let mut x_l_i = 0f32;
-                        for i in 0..layers[l-1] as usize + 1{ // layers[1] = 2 + 1 = 3
+                        for i in 0..layers[l-1] as usize + 1{
                             x_l_i += w[l][i][j-1] * x[l-1][i];
-                            // x_1_i = w[1][0][0] * x[0][0]   x_2_i = w[2][0][0] * x[1][0]
-                            //       + w[1][1][0] * x[0][1]         + w[2][1][0] * x[1][1]
-                            //       + w[1][2][0] * x[0][2]         + w[2][2][0] * x[1][2]
                         }
                         // si on est en régression et sur la derniere couche, on fait un truc spécial, sinon comme d'hab
                         if !is_classification && l==number_of_layers-1 {
                             x_l.push(x_l_i);
                         } else {
                             x_l.push(x_l_i.tanh());
-                            // x_1 = [1, 0.8, 1, -0.7]
                         }
-                        // println!("x_l : {:?}", x_l);
                     }
                     x.push(x_l);
-                    // x = [x_1]
                     delta.push(vec![0f32; size_of_x_l]);
                 }
-                let L = number_of_layers - 1; // L = 2
-                let size_of_delta_L = layers[L] as usize + 1; // == 2
-                for j in 1..size_of_delta_L{ // j in 1..2
+                let L = number_of_layers - 1;
+                let size_of_delta_L = layers[L] as usize + 1;
+                for j in 1..size_of_delta_L{
                     delta[L][j] = x[L][j] - y_k[j];
                     if is_classification {
-                        // delta[L-j+1][j-1] = (1f32 - x[L-j+1][j] * x[L-j+1][j]) * (x[L-j+1][j] - y_k[j]);
                         delta[L][j] *= 1f32 - x[L][j] * x[L][j]
                     }
                 }
 
-                for l in (1..number_of_layers).rev() { // l in 1..2 -> l = 1
-                    for i in 0..layers[l - 1] as usize + 1{ // i in 0..3
+                for l in (1..number_of_layers).rev() {
+                    for i in 0..layers[l - 1] as usize + 1{
                         let mut weighed_sum_of_errors = 0f32;
-                        for j in 1..layers[l] as usize + 1{ // j in 1..3
+                        for j in 1..layers[l] as usize + 1{
                             weighed_sum_of_errors += w[l][i][j-1] * delta[l][j];
                         }
                         delta[l-1][i] = (1f32 - x[l - 1][i] * x[l - 1][i]) * weighed_sum_of_errors;
                     }
                 }
 
-                for l in 1..number_of_layers { // 3 layers
-                    for i in 0..layers[l - 1] as usize + 1{ // i in 0..3
-                        for j in 1..layers[l] as usize + 1{ // j in 1..2
+                for l in 1..number_of_layers {
+                    for i in 0..layers[l - 1] as usize + 1{
+                        for j in 1..layers[l] as usize + 1{
                             w[l][i][j-1] -= learning_rate * x[l - 1][i] * delta[l][j];
-
-                            // l = 1, i = 0 ; j = 1
-                            // w[1][0][1] -= lr * x[0][0] * delta[1][1]
                         }
                     }
                 }
             }
         }
         let mut w_return = Vec::with_capacity(total_number_of_weights);
-        // total_number_of_weights = 3
-        for l /*layer*/ in 1..number_of_layers { // on calcule d'une couche à la suivante, donc on ne prend pas la première.
-            // number of layers = 3
-            // l = 1
-            for i in 0..layers[l-1] as usize + 1 { // i in 0..3
-                for j in 1..layers[l] as usize + 1{ // j in 0..2
+        for l in 1..number_of_layers {
+            for i in 0..layers[l-1] as usize + 1 {
+                for j in 1..layers[l] as usize + 1{
                     w_return.push(w[l][i][j-1]);
                 }
             }
@@ -541,14 +521,6 @@ extern "C" fn predict_with_multi_layer_perceptron_model(pointer_to_model: *mut f
 
         let inputs_data = std::slice::from_raw_parts(pointer_to_inputs,
                                                      number_of_inputs * dimension_of_inputs);
-        // pointer_to_inputs = [0, 0]
-        //              [0, 1] dimension of inputs = 2
-        //              [1, 0] number of inputs = 4
-        //              [1, 1] donc on a bien un vecteur de taille  8
-
-        // labels = [-1, 1, 1, -1]
-        // len = 4 * 1
-
         let mut Y : Vec<f32> = Vec::with_capacity(number_of_inputs*number_of_classes);
 
         for k in 0..number_of_inputs {
@@ -617,33 +589,26 @@ fn multi_layer_perceptron_predict_test( w:  Vec<Vec<Vec<f32>>>, // c'est le w en
         if layers[number_of_layers - 1] as usize != number_of_classes_to_predict {
             panic!("Wrong number of neurons in the last layer.");
         }
-        let mut Y : Vec<f32> = Vec::with_capacity(number_of_inputs*number_of_classes_to_predict);
+
+        let mut Y : Vec<f32> = Vec::with_capacity(number_of_inputs * number_of_classes_to_predict);
 
         for k in 0..number_of_inputs {
-
             let mut x : Vec<Vec<f32>> = Vec::with_capacity(number_of_layers);
-
-            let size_of_x_0: usize = layers[0] as usize + 1; // = 2 + 1 = 3
-            // println!("size x0 = {:?}",size_of_x_0);
+            let size_of_x_0: usize = layers[0] as usize + 1;
             let mut x_0: Vec<f32> = Vec::with_capacity(size_of_x_0);
             x_0.push(1f32);
-            // println!("x_0 : {:?}",x_0.len());
-            for j in 0..(size_of_x_0-1) { // 0..2
-                // x_0 = [1, 1, 0]
-                x_0.push(inputs[k * dimension_of_inputs + j]); // inputs = [0, 0, 0, 1, 1, 0, 1, 1]
+            for j in 0..(size_of_x_0-1) {
+                x_0.push(inputs[k * dimension_of_inputs + j]);
             }
-
-
             x.push(x_0);
 
-
-            for l in 1..number_of_layers { // nb layers = 2
-                let size_of_x_l: usize = layers[l] as usize + 1; // size of layer[1] = 1
+            for l in 1..number_of_layers {
+                let size_of_x_l: usize = layers[l] as usize + 1;
                 let mut x_l: Vec<f32> = Vec::with_capacity(size_of_x_l);
                 x_l.push(1f32);
                 for j in 1..size_of_x_l {
                     let mut x_l_i = 0f32;
-                    for i in 0..layers[l-1] as usize + 1{ // layers[0] = 2 + 1 = 3
+                    for i in 0..layers[l-1] as usize + 1{
                         x_l_i += w[l][i][j - 1] * x[l-1][i];
                     }
                     if !is_classification && l==number_of_layers-1 {
@@ -658,134 +623,111 @@ fn multi_layer_perceptron_predict_test( w:  Vec<Vec<Vec<f32>>>, // c'est le w en
             for i in 1..number_of_classes_to_predict + 1{
                 Y.push(x[number_of_layers-1][i]);
             }
-
         }
     Y
-        // let arr_slice = Y.leak();
-        // arr_slice.as_mut_ptr()
 }
 
-//
-fn write_accuracy(my_vec: Vec<Vec<f32>>) -> io::Result<()> {
-    let mut file = File::create("saved_accuracy.txt")?;
-    for row in &my_vec {
-        for &value in row{
-            write!(file, "{},", value)?;
-        }
-        writeln!(file)?;
-    }
+
+fn save_accuracy_and_losses_as_file(accuracies_and_losses: AccuraciesAndLosses) -> io::Result<()> {
+    let mut file = File::create("saved_accuracy.json")?;
+    let accuracies_and_losses_to_string = serde_json::to_string(&accuracies_and_losses);
+    write!(file, "{}", accuracies_and_losses_to_string.unwrap())?;
     Ok(())
 }
 
 #[no_mangle]
-extern "C" fn multi_layer_perceptron_accuracy(w_ptr: *mut f32,
-                                              labels_ptr : *mut f32,
-                                              inputs_ptr: *mut f32,
-                                              number_of_inputs: usize,
-                                              labels_test_ptr : *mut f32,
-                                              inputs_test_ptr: *mut f32,
-                                              number_of_inputs_test: usize,
+extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
+                                              pointer_to_layers: *mut f32,
+                                              number_of_layers: usize,
+                                              pointer_to_training_inputs: *mut f32,
+                                              number_of_training_inputs: usize,
+                                              pointer_to_tests_inputs: *mut f32,
+                                              number_of_tests_inputs: usize,
                                               dimension_of_inputs: usize,
-                                              number_of_classes_to_predict: usize,
+                                              pointer_to_training_labels : *mut f32,
+                                              pointer_to_tests_labels : *mut f32,
+                                              number_of_classes: usize,
                                               learning_rate: f32,
-                                              epoch: usize,
+                                              number_of_epochs: usize,
                                               batch_size: usize,
-                                              layers_ptr: *mut f32, // forme du perceptron, ex: (2, 2, 1)
-                                              number_of_layers: usize, // nombre de couches
                                               is_classification: bool) -> *mut f32 {
     unsafe {
+        if batch_size == 0 {
+            panic!("Batch size must be at least 1.");
+        }
         if number_of_layers < 2 {
             panic!("Not enough layers.");
         }
-        let layers = std::slice::from_raw_parts(layers_ptr, number_of_layers);
+        let layers = std::slice::from_raw_parts(pointer_to_layers, number_of_layers);
         if layers[0] as usize != dimension_of_inputs {
             panic!("Wrong number of neurons in the first layer.");
         }
-        if layers[number_of_layers - 1] as usize != number_of_classes_to_predict {
+        if layers[number_of_layers - 1] as usize != number_of_classes {
             panic!("Wrong number of neurons in the last layer.");
         }
 
-
-        let mut total_number_of_weights = get_number_of_w(layers_ptr, number_of_layers); // = 9 pour XOR
-
-        let w_param = std::slice::from_raw_parts(w_ptr, total_number_of_weights);
-
+        let mut total_number_of_weights = get_number_of_w(pointer_to_layers, number_of_layers);
+        let w_param = std::slice::from_raw_parts(pointer_to_model, total_number_of_weights);
         let mut w_index:usize = 0;
         let mut w: Vec<Vec<Vec<f32>>> = Vec::with_capacity(number_of_layers);
-        w.push(Vec::from(Vec::new())); // à chaque fois on veut avoir un w[l][i][j] avec rien dans notre couche l
-
-        for l /*layer*/ in 0..(number_of_layers - 1) { // on calcule d'une couche à la suivante, donc on ne prend pas la première. XOR -> nb_layers = 3 donc l in 0..2
-            let size_of_w_l: usize = layers[l] as usize + 1; // on a rajouté 1 pour le biais
-            //l = 0 -> size_of_w_l = 3 , l=1 -> size_of_w_l = 3
+        w.push(Vec::from(Vec::new()));
+        for l in 0..(number_of_layers - 1) {
+            let size_of_w_l: usize = layers[l] as usize + 1;
             let mut w_l: Vec<Vec<f32>> = Vec::with_capacity(size_of_w_l);
-            for i in 0..size_of_w_l { // l = 0 -> i in 0..3 , l=1 -> i in 0..3
-                let size_of_w_l_i: usize = layers[l + 1] as usize; // = 2 / 1
+            for i in 0..size_of_w_l {
+                let size_of_w_l_i: usize = layers[l + 1] as usize;
                 let mut w_l_i: Vec<f32> = Vec::with_capacity(size_of_w_l_i);
-                for j in 0..size_of_w_l_i { // j in 0..2 / j in 0..1
-                    w_l_i.push(w_param[w_index]); // w_param[0], w_param[1], w_param[2]
+                for j in 0..size_of_w_l_i {
+                    w_l_i.push(w_param[w_index]);
                     w_index += 1;
                 }
-                w_l.push(w_l_i); // w = [[w_param[0],w_param[1]],[w_param[2]]]
+                w_l.push(w_l_i);
             }
             w.push(w_l);
         }
 
+        let inputs_data = std::slice::from_raw_parts(pointer_to_training_inputs,
+                                                     number_of_training_inputs * dimension_of_inputs);
+        let labels = std::slice::from_raw_parts(pointer_to_training_labels,
+                                                number_of_training_inputs * number_of_classes);
 
-        let inputs_data = std::slice::from_raw_parts(inputs_ptr,
-                                                     number_of_inputs * dimension_of_inputs);
-        // inputs_ptr = [0, 0]
-        //              [0, 1] dimension of inputs = 2
-        //              [1, 0] number of inputs = 4
-        //              [1, 1] donc on a bien un vecteur de taille  8
-        let labels = std::slice::from_raw_parts(labels_ptr,
-                                                number_of_inputs * number_of_classes_to_predict);
-        // labels = [-1, 1, 1, -1]
-        // len = 4 * 1
-
-        let inputs_test = std::slice::from_raw_parts(inputs_test_ptr, number_of_inputs_test * dimension_of_inputs);
-        let labels_test = std::slice::from_raw_parts(labels_test_ptr, number_of_inputs_test * number_of_classes_to_predict);
-
-        //let inputs_data_test = std::slice::from_raw_parts(inputs_test_ptr,number_of_inputs_test * dimension_of_inputs);
-
-
+        let inputs_test = std::slice::from_raw_parts(pointer_to_tests_inputs,
+                                                     number_of_tests_inputs * dimension_of_inputs);
+        let labels_test = std::slice::from_raw_parts(pointer_to_tests_labels,
+                                                     number_of_tests_inputs * number_of_classes);
 
         use rand::thread_rng;
         use rand::seq::SliceRandom;
 
-        let mut accuracy_vec_train: Vec<f32> = Vec::with_capacity(epoch);
-        let mut accuracy_vec_test: Vec<f32> = Vec::with_capacity(epoch);
+        let mut accuracies_on_training_dataset: Vec<f32> = Vec::with_capacity(number_of_epochs);
+        let mut losses_on_training_dataset: Vec<f32> = Vec::with_capacity(number_of_epochs);
+        let mut accuracies_on_tests_dataset: Vec<f32> = Vec::with_capacity(number_of_epochs);
+        let mut losses_on_tests_dataset: Vec<f32> = Vec::with_capacity(number_of_epochs);
 
-        for numero_epoch in 0..epoch {
-            println!("epoch:{:?}",numero_epoch + 1);
+        for epoch_number in 0..number_of_epochs {
+            println!("Epochs {:?}",epoch_number + 1);
+            let check_accuracy_and_loss : bool = epoch_number % batch_size == 0;
+            let mut number_of_mispredicted_training_outputs:f32 = 0.;
+            let mut training_squarred_errors_sum:f32 = 0.;
 
-            let mut randomly_ordered_dataset: Vec<usize> = (0..number_of_inputs).collect();
+            let mut randomly_ordered_dataset: Vec<usize> = (0..number_of_training_inputs).collect();
             randomly_ordered_dataset.shuffle(&mut thread_rng());
 
-
-            let mut error_train = 0;
             for k in randomly_ordered_dataset {
-
-                let mut x : Vec<Vec<f32>> = Vec::with_capacity(number_of_layers); // nb_layers = 3
-                // x est la totalité de nos x
-
-                let size_of_x_0: usize = layers[0] as usize + 1; // size_of_x_0 = 2 + 1 = 3
+                let mut x : Vec<Vec<f32>> = Vec::with_capacity(number_of_layers);
+                let size_of_x_0: usize = layers[0] as usize + 1;
                 let mut x_0: Vec<f32> = Vec::with_capacity(size_of_x_0);
                 x_0.push(1f32);
-                for j in 0..(size_of_x_0-1) { // 0..2
-                    // x_0 = [1, 1, 0]
+                for j in 0..(size_of_x_0-1) {
                     x_0.push(inputs_data[k * dimension_of_inputs + j]);
                 }
                 x.push(x_0);
 
-
-
-                let mut y_k:Vec<f32> = Vec::with_capacity(number_of_classes_to_predict + 1);
-                y_k.push(1f32);
-                for class_number in 0..number_of_classes_to_predict {
-                    y_k.push(labels[k * number_of_classes_to_predict + class_number]);
+                let mut labels:Vec<f32> = Vec::with_capacity(number_of_classes + 1);
+                labels.push(1f32);
+                for class_number in 0..number_of_classes {
+                    labels.push(labels[k * number_of_classes + class_number]);
                 }
-
-
 
                 let mut delta : Vec<Vec<f32>> = Vec::with_capacity(number_of_layers);
                 delta.push(vec![0f32; size_of_x_0]);
@@ -808,32 +750,38 @@ extern "C" fn multi_layer_perceptron_accuracy(w_ptr: *mut f32,
                     }
                     x.push(x_l);
                     delta.push(vec![0f32; size_of_x_l]);
-
                 }
                 let L = number_of_layers - 1;
                 let size_of_delta_L = layers[L] as usize + 1;
-                let mut is_error = 0;
+                // if check_accuracy_and_loss { // It won't compile with that uncommented, even if the uses of is_mispredicted have the same condition.
+                    let mut is_mispredicted = false;
+                // }
                 for j in 1..size_of_delta_L{
-                    delta[L][j] = x[L][j] - y_k[j];
-                    if (delta[L][j] >= 1. || delta[L][j] <= -1.) && is_error == 0 {
-                        error_train += 1;
-                        is_error += 1;
-                    }
-                    if is_classification {
-                        delta[L][j] *= 1f32 - x[L][j] * x[L][j];
+                    delta[L][j] = x[L][j] - labels[j];
+                    if check_accuracy_and_loss {
+                        // Accuracy
+                        if (delta[L][j] >= 1. || delta[L][j] <= -1.) && !is_mispredicted {
+                            number_of_mispredicted_training_outputs += 1.;
+                            is_mispredicted = true;
+                        }
+                        // Loss
+                        training_squarred_errors_sum += delta[L][j] * delta[L][j];
+
+                        if is_classification {
+                            delta[L][j] *= 1f32 - x[L][j] * x[L][j];
+                        }
                     }
                 }
 
                 for l in (1..number_of_layers).rev() {
                     for i in 0..layers[l - 1] as usize + 1{
-                        let mut weighed_sum_of_errors = 0f32;
+                        let mut weighted_sum_of_errors = 0f32;
                         for j in 1..layers[l] as usize + 1{
-                            weighed_sum_of_errors += w[l][i][j-1] * delta[l][j];
+                            weighted_sum_of_errors += w[l][i][j-1] * delta[l][j];
                         }
-                        delta[l-1][i] = (1f32 - x[l - 1][i] * x[l - 1][i]) * weighed_sum_of_errors;
+                        delta[l-1][i] = (1f32 - x[l - 1][i] * x[l - 1][i]) * weighted_sum_of_errors;
                     }
                 }
-
 
                 for l in 1..number_of_layers {
                     for i in 0..layers[l - 1] as usize + 1{
@@ -844,37 +792,55 @@ extern "C" fn multi_layer_perceptron_accuracy(w_ptr: *mut f32,
                 }
             }
 
-            let accuracy:f32 = error_train as f32/number_of_inputs as f32;
-            println!("nbr of errors: {:?}", error_train);
-            println!("pourcentage d'erreur: {:?}", accuracy);
-            accuracy_vec_train.push( accuracy);
+            if check_accuracy_and_loss {
+                let training_accuracy:f32 = number_of_mispredicted_training_outputs / number_of_training_inputs as f32;
+                let training_loss:f32 = training_squarred_errors_sum / number_of_training_inputs as f32;
+                println!("Number of training inputs mispredicted : {:?}", number_of_mispredicted_training_outputs);
+                println!("Training inputs accuracy : {:?}", training_accuracy);
+                println!("Training inputs loss : {:?}", training_loss);
+                accuracies_on_training_dataset.push(training_accuracy);
+                losses_on_training_dataset.push(training_loss);
 
-            let Y_test = multi_layer_perceptron_predict_test(w.clone(),inputs_test.clone(),
-                                                             number_of_inputs_test,dimension_of_inputs,
-                                                             number_of_classes_to_predict,layers,number_of_layers, is_classification);
-            
-            let mut error_test = 0;
-
-            for i in (0..(number_of_inputs_test * number_of_classes_to_predict)).step_by(number_of_classes_to_predict) {
-                for j in 0..number_of_classes_to_predict {
-                    let delta_test = labels_test[i+j] - Y_test.clone()[i+j];
-                    if delta_test >= 1. || delta_test <= -1. {
-                        error_test += 1;
-                        break;
+                let precicted_labels = multi_layer_perceptron_predict_test(w.clone(),
+                                                                        inputs_test.clone(),
+                                                                        number_of_tests_inputs,
+                                                                        dimension_of_inputs,
+                                                                        number_of_classes,
+                                                                        layers,
+                                                                        number_of_layers,
+                                                                        is_classification);
+                
+                let mut number_of_mispredicted_tests_outputs:f32 = 0.;
+                let mut tests_squarred_errors_sum:f32 = 0.;
+                
+                for i in (0..(number_of_tests_inputs * number_of_classes)).step_by(number_of_classes) {
+                    let mut is_mispredicted = false;
+                    for j in 0..number_of_classes {
+                        let delta_test = labels_test[i+j] - precicted_labels.clone()[i+j];
+                        if !is_mispredicted && (delta_test >= 1. || delta_test <= -1.) {
+                            number_of_mispredicted_tests_outputs += 1.;
+                            is_mispredicted = true;
+                        }
+                        tests_squarred_errors_sum += delta_test * delta_test;
                     }
                 }
+                let tests_accuracy:f32 = number_of_mispredicted_tests_outputs / number_of_tests_inputs as f32;
+                let tests_loss:f32 = tests_squarred_errors_sum / number_of_tests_inputs as f32;
+                println!("Number of tests inputs mispredicted : {:?}", number_of_mispredicted_tests_outputs);
+                println!("Tests inputs accuracy: {:?}", tests_accuracy);
+                println!("Tests inputs loss : {:?}", training_loss);
+                accuracies_on_tests_dataset.push(tests_accuracy);
+                losses_on_tests_dataset.push(tests_loss);
             }
-            let accuracy_test:f32 = error_test as f32/number_of_inputs_test as f32;
-            println!("nbr of errors test: {:?}", error_test);
-            println!("pourcentage d'erreur test: {:?}", accuracy_test);
-            accuracy_vec_test.push(accuracy_test);
-
         }
-        let mut accuracy_vec : Vec<Vec<f32>>  = Vec::with_capacity(2);
-        accuracy_vec.push(accuracy_vec_train);
-        accuracy_vec.push(accuracy_vec_test);
 
-        write_accuracy(accuracy_vec).expect("dosnt work");
+        let mut accuracies_and_losses = AccuraciesAndLosses {
+            training_accuracy: accuracies_on_training_dataset,
+            training_loss: losses_on_training_dataset,
+            tests_accuracy: accuracies_on_tests_dataset,
+            tests_loss: losses_on_tests_dataset,
+        };
+        save_accuracy_and_losses_as_file(accuracies_and_losses).expect("Doesn't work");
         
         let mut w_return = Vec::with_capacity(total_number_of_weights);
         for l in 1..number_of_layers { 
@@ -886,7 +852,5 @@ extern "C" fn multi_layer_perceptron_accuracy(w_ptr: *mut f32,
         }
         let arr_slice = w_return.leak();
         arr_slice.as_mut_ptr()
-
-
     }
 }

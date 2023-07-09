@@ -1,7 +1,6 @@
 
-mod multy_layer_perceptron;
+mod tests;
 
 pub fn main(){
-
-    multy_layer_perceptron::patate();
+    tests::print_an_address();
 }

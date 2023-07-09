@@ -2,5 +2,5 @@
 
 
 data/*
-resized_dataset/*/*.jpg
-resized_dataset/*
+*/*/*.jpg
+*/*

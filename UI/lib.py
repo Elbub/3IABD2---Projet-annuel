@@ -9,7 +9,7 @@ from tkinter.messagebox import *
 from PIL import Image
 
 # rust_machine_learning_library = ctypes.CDLL(r"C:\Users\Moi\Desktop\Projets\3IABD2 - Projet annuel\rust_lib\target\debug\rust_lib.dll")
-rust_machine_learning_library = ctypes.CDLL(r"C:\Users\Moi\Desktop\Projets\3IABD2 - Projet annuel\rust_lib\target\release\rust_lib.dll")
+rust_machine_learning_library = ctypes.CDLL(r".\rust_lib\target\release\rust_lib.dll")
 POINTER_TO_FLOAT_ARRAY_TYPE = ctypes.POINTER(ctypes.c_float)
 POINTER_TO_INT_ARRAY_TYPE = ctypes.POINTER(ctypes.c_int32)
 
@@ -29,10 +29,14 @@ rust_machine_learning_library.train_multi_layer_perceptron_model.argtypes = [
     ctypes.c_int32,
     ctypes.POINTER(ctypes.c_float),
     ctypes.c_int32,
+    ctypes.POINTER(ctypes.c_float),
     ctypes.c_int32,
+    ctypes.c_int32,
+    ctypes.POINTER(ctypes.c_float),
     ctypes.POINTER(ctypes.c_float),
     ctypes.c_int32,
     ctypes.c_float,
+    ctypes.c_int32,
     ctypes.c_int32,
     ctypes.c_bool,
 ]
@@ -51,7 +55,7 @@ rust_machine_learning_library.predict_with_multi_layer_perceptron_model.argtypes
 rust_machine_learning_library.predict_with_multi_layer_perceptron_model.restype = ctypes.POINTER(ctypes.c_float)
 
 
-def read_only_train_dataset(dataset_folders: Union[str, List[str]]):
+def read_only_train_dataset(dataset_folders: Union[str, list[str]]):
     inputs = []
     labels = []
     number_of_inputs = 0
@@ -74,7 +78,7 @@ def read_only_train_dataset(dataset_folders: Union[str, List[str]]):
     return (inputs, number_of_inputs, labels)
     
 
-def read_both_datasets(dataset_folders: List[List[str]]):
+def read_both_datasets(dataset_folders: list[list[str]]):
     train_inputs = []
     tests_inputs = []
     train_labels = []
@@ -114,7 +118,7 @@ def read_both_datasets(dataset_folders: List[List[str]]):
     return (train_inputs, train_labels, number_of_train_inputs, tests_inputs, tests_labels, number_of_tests_inputs)
     
 
-def read_dataset(dataset_folders: Union[str, List[str], List[List[str]]]):
+def read_dataset(dataset_folders: Union[str, list[str], list[list[str]]]):
     if not dataset_folders :
         return
     if isinstance(dataset_folders, str) :
@@ -135,7 +139,8 @@ def get_number_of_weights(layers_list):
     return number_of_weights
 
 
-def generate_multi_layer_perceptron_model(layers_list: List[int]):
+def generate_multi_layer_perceptron_model(layers_list: list[int]):
+    print("debug")
     layers = np.array(layers_list, dtype=ctypes.c_float)
     layers_as_c_float_array = (ctypes.c_float * len(layers))(*layers)
     number_of_layers = len(layers_as_c_float_array)
@@ -146,23 +151,31 @@ def generate_multi_layer_perceptron_model(layers_list: List[int]):
 
 
 def train_multi_layer_perceptron_model(is_classification: bool,
-                                       layers: Union[List[float], np.ndarray],
-                                       inputs: Union[List[float], np.ndarray],
-                                       labels: Union[List[float], np.ndarray],
-                                       model: Union[List[float], np.ndarray],
+                                       layers: Union[list[float], np.ndarray],
+                                       training_inputs: Union[list[float], np.ndarray],
+                                       tests_inputs: Union[list[float], np.ndarray],
+                                       training_labels: Union[list[float], np.ndarray],
+                                       tests_labels: Union[list[float], np.ndarray],
+                                       model: Union[list[float], np.ndarray],
                                        learning_rate: float,
                                        number_of_epochs: float,
-                                       number_of_inputs: int = 0,
+                                       number_of_training_inputs: int = 0,
+                                       number_of_tests_inputs: int = 0,
                                        dimensions_of_inputs: int = 0,
-                                       number_of_classes: int = 0):
+                                       number_of_classes: int = 0,
+                                       batch_size: int = 1):
     timer = time.time()
     
     if not isinstance(is_classification, bool):
         raise TypeError
     
-    if not isinstance(number_of_inputs, int):
+    if not isinstance(number_of_training_inputs, int):
         raise TypeError
-    if number_of_inputs < 1 :
+    if number_of_training_inputs < 1 :
+        raise ValueError
+    if not isinstance(number_of_tests_inputs, int):
+        raise TypeError
+    if number_of_tests_inputs < 1 :
         raise ValueError
     
     if not isinstance(dimensions_of_inputs, int):
@@ -175,7 +188,7 @@ def train_multi_layer_perceptron_model(is_classification: bool,
     if number_of_classes < 1 :
         raise ValueError
     
-    if isinstance(layers, List):
+    if isinstance(layers, list):
         layers = np.array(layers, dtype=ctypes.c_float)
     if not isinstance(layers, np.ndarray):
         raise TypeError
@@ -189,20 +202,34 @@ def train_multi_layer_perceptron_model(is_classification: bool,
     layers_as_c_float_array = (ctypes.c_float * len(layers))(*layers)
     pointer_to_layers = ctypes.cast(layers_as_c_float_array, POINTER_TO_FLOAT_ARRAY_TYPE)
     
-    if not isinstance(inputs, np.ndarray):
+    if not isinstance(training_inputs, np.ndarray):
         raise TypeError
-    if number_of_inputs * dimensions_of_inputs != len(inputs):
+    if number_of_training_inputs * dimensions_of_inputs != len(training_inputs):
         raise ValueError
-    inputs_as_c_float_array = (ctypes.c_float * (number_of_inputs * dimensions_of_inputs))(*inputs)
-    pointer_to_inputs = ctypes.cast(inputs_as_c_float_array, POINTER_TO_FLOAT_ARRAY_TYPE)
-    
-    if not isinstance(labels, np.ndarray):
+    training_inputs_as_c_float_array = (ctypes.c_float * (number_of_training_inputs * dimensions_of_inputs))(*training_inputs)
+    pointer_to_training_inputs = ctypes.cast(training_inputs_as_c_float_array, POINTER_TO_FLOAT_ARRAY_TYPE)
+    if not isinstance(tests_inputs, np.ndarray):
         raise TypeError
-    if number_of_inputs * number_of_classes != len(labels):
+    if number_of_tests_inputs * dimensions_of_inputs != len(tests_inputs):
         raise ValueError
-    labels_as_c_float_array = (ctypes.c_float * (number_of_inputs * number_of_classes))(*labels)
-    pointer_to_labels = ctypes.cast(labels_as_c_float_array, POINTER_TO_FLOAT_ARRAY_TYPE)
+    tests_inputs_as_c_float_array = (ctypes.c_float * (number_of_tests_inputs * dimensions_of_inputs))(*tests_inputs)
+    pointer_to_tests_inputs = ctypes.cast(tests_inputs_as_c_float_array, POINTER_TO_FLOAT_ARRAY_TYPE)
     
+    if not isinstance(training_labels, np.ndarray):
+        raise TypeError
+    if number_of_training_inputs * number_of_classes != len(training_labels):
+        raise ValueError
+    training_labels_as_c_float_array = (ctypes.c_float * (number_of_training_inputs * number_of_classes))(*training_labels)
+    pointer_to_training_labels = ctypes.cast(training_labels_as_c_float_array, POINTER_TO_FLOAT_ARRAY_TYPE)
+    if not isinstance(tests_labels, np.ndarray):
+        raise TypeError
+    if number_of_tests_inputs * number_of_classes != len(tests_labels):
+        raise ValueError
+    tests_labels_as_c_float_array = (ctypes.c_float * (number_of_tests_inputs * number_of_classes))(*tests_labels)
+    pointer_to_tests_labels = ctypes.cast(tests_labels_as_c_float_array, POINTER_TO_FLOAT_ARRAY_TYPE)
+    
+    if isinstance(model, list):
+        model = np.array(model, dtype=ctypes.c_float)
     if not isinstance(model, np.ndarray):
         raise TypeError
     number_of_weights = len(model)
@@ -221,7 +248,8 @@ def train_multi_layer_perceptron_model(is_classification: bool,
     if not isinstance(number_of_epochs, ctypes.c_int32):
         raise TypeError
 
-    number_of_inputs = ctypes.c_int32(number_of_inputs)
+    number_of_training_inputs = ctypes.c_int32(number_of_training_inputs)
+    number_of_tests_inputs = ctypes.c_int32(number_of_tests_inputs)
     dimensions_of_inputs = ctypes.c_int32(dimensions_of_inputs)
     number_of_classes = ctypes.c_int32(number_of_classes)
     print("Training...")
@@ -230,13 +258,17 @@ def train_multi_layer_perceptron_model(is_classification: bool,
                                                                                                 pointer_to_model,
                                                                                                 pointer_to_layers,
                                                                                                 number_of_layers,
-                                                                                                pointer_to_inputs,
-                                                                                                number_of_inputs,
+                                                                                                pointer_to_training_inputs,
+                                                                                                number_of_training_inputs,
+                                                                                                pointer_to_tests_inputs,
+                                                                                                number_of_tests_inputs,
                                                                                                 dimensions_of_inputs,
-                                                                                                pointer_to_labels,
+                                                                                                pointer_to_training_labels,
+                                                                                                pointer_to_tests_labels,
                                                                                                 number_of_classes,
                                                                                                 learning_rate,
                                                                                                 number_of_epochs,
+                                                                                                batch_size,
                                                                                                 is_classification
                                                                                                )
     print("The model has been trained.")
@@ -246,9 +278,9 @@ def train_multi_layer_perceptron_model(is_classification: bool,
     
 
 def predict_with_multi_layer_perceptron_model(is_classification: bool,
-                                              layers: Union[List[float], np.ndarray],
-                                              inputs: Union[List[float], np.ndarray],
-                                              model: Union[List[float], np.ndarray],
+                                              layers: Union[list[float], np.ndarray],
+                                              inputs: Union[list[float], np.ndarray],
+                                              model: Union[list[float], np.ndarray],
                                               number_of_inputs: int = 0,
                                               dimensions_of_inputs: int = 0,
                                               number_of_classes: int = 0):
@@ -272,7 +304,7 @@ def predict_with_multi_layer_perceptron_model(is_classification: bool,
         raise ValueError
     
     
-    if isinstance(layers, List):
+    if isinstance(layers, list):
         layers = np.array(layers, dtype=ctypes.c_float)
     if not isinstance(layers, np.ndarray):
         raise TypeError

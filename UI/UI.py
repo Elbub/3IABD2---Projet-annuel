@@ -10,6 +10,7 @@ from screeninfo import get_monitors
 import matplotlib.pyplot as plt
 
 ### Opérations sur les fichiers
+import numpy as np
 import os
 from os.path import normpath
 from PIL import Image
@@ -126,7 +127,6 @@ def _check_entry_string(new_value):
 ##########################
 def fonction_principale():
     
-    
     def load_model_from_file():
         """FR : Ouvre une fenêtre de sélection de fichier pour choisir une liste de consignes à charger.
         
@@ -137,7 +137,7 @@ def fonction_principale():
                 nonlocal model
                 potential_model = load(layers_file)
                 if (not isinstance(potential_model, dict)  
-                    or len(potential_model.keys() & set(["model_type", "layers", "weights", "error_and_accuracy", "inputs_width", "inputs_height", "inputs_color", "dataset_folders", "is_classification"])) != 9):
+                    or len(potential_model.keys() & set(["model_type", "layers", "weights", "accuracies_and_losses", "inputs_width", "inputs_height", "inputs_color", "dataset_folders", "is_classification"])) != 9):
                     showwarning("Wrong file", "No model found inside this file.")
                 else :
                     model = potential_model
@@ -151,7 +151,23 @@ def fonction_principale():
         filepath = asksaveasfilename(initialdir = MODELS_SAVE_FOLDER, filetypes = [("fichier json", "*.json")], defaultextension = ".json")
         if filepath :
             with open(filepath, 'w') as model_file :
-                dump(model, model_file)
+                new_model = {}
+                if isinstance(model["weights"], np.ndarray) :
+                    new_model["weights"] = model["weights"].tolist()
+                else :
+                    new_model["weights"] = model["weights"]
+                new_model["accuracies_and_losses"] = model["accuracies_and_losses"]
+                new_model["model_type"] = model["model_type"]
+                new_model["is_classification"] = model["is_classification"]
+                new_model["inputs_width"] = model["inputs_width"]
+                new_model["inputs_height"] = model["inputs_height"]
+                new_model["inputs_color"] = model["inputs_color"]
+                if isinstance(model["layers"], np.ndarray) :
+                    new_model["layers"] = model["layers"].tolist()
+                else :
+                    new_model["layers"] = model["layers"]
+                new_model["dataset_folders"] = model["dataset_folders"]
+                dump(new_model, model_file)
             return True
     #V
     
@@ -411,13 +427,13 @@ def fonction_principale():
             """
             nonlocal model
             if (model["model_type"] != model_type.get()
-                or model["layers"] != layers
+                or (model["layers"].tolist() if isinstance(model["layers"], np.ndarray) else model["layers"]) != layers
                 or model["is_classification"] != is_classification.get()
                 or model["inputs_width"] != inputs_width.get()
                 or model["inputs_height"] != inputs_height.get()
                 or model["inputs_color"] != inputs_color.get()):
                 model["weights"] = []
-                model["error_and_accuracy"] = []
+                model["accuracies_and_losses"] = []
             model["model_type"] = model_type.get()
             model["is_classification"] = is_classification.get()
             model["inputs_width"] = inputs_width.get()
@@ -449,10 +465,16 @@ def fonction_principale():
                     new_model = {}
                     if breaking_change :
                         new_model["weights"] = []
-                        new_model["error_and_accuracy"] = []
+                        new_model["accuracies_and_losses"] = []
                     else :
-                        new_model["weights"] = model["weights"]
-                        new_model["error_and_accuracy"] = model["error_and_accuracy"]
+                        if isinstance(model["weights"], np.ndarray) :
+                            new_model["weights"] = model["weights"].tolist()
+                        else :
+                            new_model["weights"] = model["weights"]
+                        if isinstance(model["accuracies_and_losses"], np.ndarray) :
+                            new_model["accuracies_and_losses"] = model["accuracies_and_losses"].tolist()
+                        else :
+                            new_model["accuracies_and_losses"] = model["accuracies_and_losses"]
                     new_model["model_type"] = model_type.get()
                     new_model["is_classification"] = is_classification.get()
                     new_model["inputs_width"] = inputs_width.get()
@@ -535,7 +557,10 @@ def fonction_principale():
         inputs_color.set(model["inputs_color"])
         number_of_classes = StringVar()
         number_of_classes.set(model["layers"][-1])
-        layers = model["layers"].copy()
+        if isinstance(model["layers"], np.ndarray) :
+            layers = model["layers"].to_list()
+        else :
+            layers = model["layers"]
         
         model_type_frame = LabelFrame(entries_window, text = "Model type :")
         model_type_frame.grid(row = 1, columnspan = 7, column = 0, padx = 10, pady = 10)
@@ -574,7 +599,7 @@ def fonction_principale():
         
         
         Button(entries_window, text = "Cancel", command = entries_window.destroy).grid(row = 5, column = 0, padx =5, pady =5)
-        Button(entries_window, text = "Load model", command = lambda : [load_model_from_file(), main_window.after(1, model_configuration), entries_window.destroy()]).grid(row = 5, column = 1, columnspan = 2, padx =5, pady =5)
+        Button(entries_window, text = "Load model", command = lambda : [entries_window.destroy(), load_model_from_file(), update_model_display_frame()]).grid(row = 5, column = 1, columnspan = 2, padx =5, pady =5)
         Button(entries_window, text = "Save model", command = save_edited_model_as_file).grid(row = 5, column = 3, columnspan = 2, padx =5, pady =5)
         Button(entries_window, text = "Ok", command = validate_entries).grid(row = 5, column = 5 , padx =5, pady =5)
 
@@ -635,36 +660,43 @@ def fonction_principale():
         """FR : 
         
         EN : """
-        nonlocal current_train_inputs, current_train_labels, current_number_of_train_inputs, current_tests_inputs, \
+        nonlocal current_train_inputs, current_train_labels, current_number_of_training_inputs, current_tests_inputs, \
             current_tests_labels, current_number_of_tests_inputs, current_learning_rate, current_number_of_epochs, current_batch_size
         current_learning_rate = float(learning_rate.get()) if learning_rate.get() else 0
         current_number_of_epochs = int(number_of_epochs.get()) if number_of_epochs.get() else 0
         current_batch_size = int(batch_size.get()) if batch_size.get() else 0
         if isinstance(current_tests_inputs, list) :
-            current_train_inputs, current_train_labels, current_number_of_train_inputs, current_tests_inputs, current_tests_labels, current_number_of_tests_inputs \
+            current_train_inputs, current_train_labels, current_number_of_training_inputs, current_tests_inputs, current_tests_labels, current_number_of_tests_inputs \
                 = lib.read_dataset(model["dataset_folders"])
-        if isinstance(model["weights"], list) :
+        if isinstance(model["weights"], list) and model["weights"] == [] :
             model["weights"] = lib.generate_multi_layer_perceptron_model(model["layers"])
         model["weights"] = lib.train_multi_layer_perceptron_model(model["is_classification"],
                                                                   model["layers"],
                                                                   current_train_inputs,
+                                                                  current_tests_inputs,
                                                                   current_train_labels,
+                                                                  current_tests_labels,
                                                                   model["weights"],
                                                                   current_learning_rate,
                                                                   current_number_of_epochs,
-                                                                  current_number_of_train_inputs,
+                                                                  current_number_of_training_inputs,
+                                                                  current_number_of_tests_inputs,
                                                                   model["layers"][0],
-                                                                  len(model["dataset_folders"]))
+                                                                  len(model["dataset_folders"]),
+                                                                  current_batch_size)
         #TODO : implement loss data retrieving. Something like `model[""] = load loss json` should do it
+        with open("accuracies_and_losses.json", 'r') as accuracies_and_losses_file :
+            model["accuracies_and_losses"].append(load(accuracies_and_losses_file))
+        os.remove("accuracies_and_losses.json")
     #PV
     
     def predict_with_mlp():
         """FR : 
         
         EN : """
-        nonlocal current_train_inputs, current_train_labels, current_number_of_train_inputs, current_tests_inputs, current_tests_labels, current_number_of_tests_inputs
+        nonlocal current_train_inputs, current_train_labels, current_number_of_training_inputs, current_tests_inputs, current_tests_labels, current_number_of_tests_inputs
         if isinstance(current_tests_inputs, list) :
-            current_train_inputs, current_train_labels, current_number_of_train_inputs, current_tests_inputs, current_tests_labels, current_number_of_tests_inputs \
+            current_train_inputs, current_train_labels, current_number_of_training_inputs, current_tests_inputs, current_tests_labels, current_number_of_tests_inputs \
                 = lib.read_dataset(model["dataset_folders"])
         if isinstance(model["weights"], list) :
             model["weights"] = lib.generate_multi_layer_perceptron_model(model["layers"])
@@ -686,7 +718,7 @@ def fonction_principale():
                 if abs(predicted_dataset[i][j] - labels_to_predict[i][j]) >= 1 :
                     total_error += 1
                     break
-        print(total_error, total_error / current_number_of_tests_inputs)
+        print(total_error, current_number_of_tests_inputs, total_error / current_number_of_tests_inputs * 100)
     #N
     
     def train_model():
@@ -715,36 +747,75 @@ def fonction_principale():
     
     def predict_on_given_dataset():
         predict_with_model()
+    #V
     
     def predict_with_new_data():
         pass
     
+    
     def print_loss():
         pass
+        for number_of_training, training in enumerate(model["accuracies_and_losses"]) :
+            fig, axs = plt.subplots(1, 3)
+            current_training_title = f"Training {number_of_training} : "
+            match model["model_type"] :
+                case "Linear" :
+                    pass
+                case "MLP" :
+                    pass
+                case "RBF" :
+                    pass
+                case "SVM" :
+                    pass
+                case _ :
+                    pass
+            fig.suptitle(current_training_title)
+            axs[0].plot(range(0, training["number_of_epochs"], training["batch_size"]), training["numbers_of_errors_on_training_dataset"], label = "Training")
+            axs[0].plot(range(0, training["number_of_epochs"], training["batch_size"]), training["numbers_of_errors_on_tests_dataset"], label = "Tests")
+            axs[0].set_title("Number of errors")
+            axs[0].set(xlabel = "Epoch", ylabel = "Number of errors")
+            axs[0].legend()
+            axs[1].plot(range(0, training["number_of_epochs"], training["batch_size"]), [element * 100 for element in training["training_accuracies"]], label = "Training")
+            axs[1].plot(range(0, training["number_of_epochs"], training["batch_size"]), [element * 100 for element in training["tests_accuracies"]], label = "Tests")
+            axs[1].set_title("Accuracy")
+            axs[1].set(xlabel = "Epoch", ylabel = "Accuracy")
+            axs[1].legend()
+            axs[2].plot(range(0, training["number_of_epochs"], training["batch_size"]), training["training_losses"], label = "Training")
+            axs[2].plot(range(0, training["number_of_epochs"], training["batch_size"]), training["tests_losses"], label = "Tests")
+            axs[2].set_title("Loss")
+            axs[2].set(xlabel = "Epoch", ylabel = "Loss")
+            axs[2].legend()
+            
+            plt.show()
+    #V
 
     model = {"model_type" : "Linear",
              "layers" : [1, 1],
              "weights" : [],
-             "error_and_accuracy" : [],
+             "accuracies_and_losses" : [],
              "inputs_width" : 1,
              "inputs_height" : 1,
              "inputs_color" : 1,
              "dataset_folders" : [["", ""]],
              "is_classification" : True}
 
-    # each element in error_and_accuracy is a dict looking like :
+    # each element in accuracies_and_losses is a dict looking like :
     # {
-    # "number_of_train_inputs" : x,
-    # "number_of_test_inputs" : x,
-    # "number_of_epochs" : x,
-    # "batch_size" : x,
-    # "number_of_errors" : [],
-    # "accurracy" : []
+    #     "number_of_training_inputs" : int,
+    #     "number_of_tests_inputs" : int,
+    #     "number_of_epochs" : int,
+    #     "batch_size" : int,
+    #     "number_of_errors_on_training_dataset" : [];
+    #     "training_accuracies" : [],
+    #     "training_losses" : [],
+    #     "number_of_errors_on_tests_dataset" : [];
+    #     "tests_accuracies" : [],
+    #     "tests_losses" : [],
     # }
     
     current_train_inputs = []
     current_train_labels = []
-    current_number_of_train_inputs = 0
+    current_number_of_training_inputs = 0
     current_tests_inputs = []
     current_tests_labels = []
     current_number_of_tests_inputs = 0
@@ -758,11 +829,6 @@ def fonction_principale():
     main_window = Tk()
     main_window.title("C'est la classe ! Mais laquelle ?")
     main_window.protocol("WM_DELETE_WINDOW", save_and_quit)
-
-    # Variables nécessaires à l'enregistrement
-
-    choix_des_documents_a_enregistrer = IntVar()
-    sauvegarde_effectue = False
 
     ##### Organisation de l'affichage #####
     screen_list = get_monitors()

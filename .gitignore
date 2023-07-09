@@ -6,5 +6,5 @@ venv
 .vscode/
 .vscode/*
 tests.py
-__pycache__/*
-__pycache__/
+UI/__pycache__/*
+UI/__pycache__/

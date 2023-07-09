@@ -668,7 +668,7 @@ def fonction_principale():
         if isinstance(current_tests_inputs, list) :
             current_train_inputs, current_train_labels, current_number_of_training_inputs, current_tests_inputs, current_tests_labels, current_number_of_tests_inputs \
                 = lib.read_dataset(model["dataset_folders"])
-        if isinstance(model["weights"], list) :
+        if isinstance(model["weights"], list) and model["weights"] == [] :
             model["weights"] = lib.generate_multi_layer_perceptron_model(model["layers"])
         model["weights"] = lib.train_multi_layer_perceptron_model(model["is_classification"],
                                                                   model["layers"],
@@ -687,7 +687,7 @@ def fonction_principale():
         #TODO : implement loss data retrieving. Something like `model[""] = load loss json` should do it
         with open("accuracies_and_losses.json", 'r') as accuracies_and_losses_file :
             model["accuracies_and_losses"].append(load(accuracies_and_losses_file))
-        # os.remove("accuracies_and_losses.json")
+        os.remove("accuracies_and_losses.json")
     #PV
     
     def predict_with_mlp():
@@ -747,12 +747,47 @@ def fonction_principale():
     
     def predict_on_given_dataset():
         predict_with_model()
+    #V
     
     def predict_with_new_data():
         pass
     
+    
     def print_loss():
         pass
+        for number_of_training, training in enumerate(model["accuracies_and_losses"]) :
+            fig, axs = plt.subplots(1, 3)
+            current_training_title = f"Training {number_of_training} : "
+            match model["model_type"] :
+                case "Linear" :
+                    pass
+                case "MLP" :
+                    pass
+                case "RBF" :
+                    pass
+                case "SVM" :
+                    pass
+                case _ :
+                    pass
+            fig.suptitle(current_training_title)
+            axs[0].plot(range(0, training["number_of_epochs"], training["batch_size"]), training["numbers_of_errors_on_training_dataset"], label = "Training")
+            axs[0].plot(range(0, training["number_of_epochs"], training["batch_size"]), training["numbers_of_errors_on_tests_dataset"], label = "Tests")
+            axs[0].set_title("Number of errors")
+            axs[0].set(xlabel = "Epoch", ylabel = "Number of errors")
+            axs[0].legend()
+            axs[1].plot(range(0, training["number_of_epochs"], training["batch_size"]), [element * 100 for element in training["training_accuracies"]], label = "Training")
+            axs[1].plot(range(0, training["number_of_epochs"], training["batch_size"]), [element * 100 for element in training["tests_accuracies"]], label = "Tests")
+            axs[1].set_title("Accuracy")
+            axs[1].set(xlabel = "Epoch", ylabel = "Accuracy")
+            axs[1].legend()
+            axs[2].plot(range(0, training["number_of_epochs"], training["batch_size"]), training["training_losses"], label = "Training")
+            axs[2].plot(range(0, training["number_of_epochs"], training["batch_size"]), training["tests_losses"], label = "Tests")
+            axs[2].set_title("Loss")
+            axs[2].set(xlabel = "Epoch", ylabel = "Loss")
+            axs[2].legend()
+            
+            plt.show()
+    #V
 
     model = {"model_type" : "Linear",
              "layers" : [1, 1],

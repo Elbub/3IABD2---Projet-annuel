@@ -839,7 +839,7 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
                 let tests_loss:f32 = tests_squarred_errors_sum / number_of_tests_inputs as f32;
                 println!("Number of tests inputs mispredicted : {:?}", number_of_mispredicted_tests_outputs);
                 println!("Tests inputs accuracy: {:?}", tests_accuracy);
-                println!("Tests inputs loss : {:?}", training_loss);
+                println!("Tests inputs loss : {:?}", tests_loss);
                 numbers_of_errors_on_tests_dataset.push(number_of_mispredicted_tests_outputs);
                 accuracies_on_tests_dataset.push(tests_accuracy);
                 losses_on_tests_dataset.push(tests_loss);

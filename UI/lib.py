@@ -55,7 +55,7 @@ rust_machine_learning_library.predict_with_multi_layer_perceptron_model.argtypes
 rust_machine_learning_library.predict_with_multi_layer_perceptron_model.restype = ctypes.POINTER(ctypes.c_float)
 
 
-def read_only_train_dataset(dataset_folders: Union[str, List[str]]):
+def read_only_train_dataset(dataset_folders: Union[str, list[str]]):
     inputs = []
     labels = []
     number_of_inputs = 0
@@ -78,7 +78,7 @@ def read_only_train_dataset(dataset_folders: Union[str, List[str]]):
     return (inputs, number_of_inputs, labels)
     
 
-def read_both_datasets(dataset_folders: List[List[str]]):
+def read_both_datasets(dataset_folders: list[list[str]]):
     train_inputs = []
     tests_inputs = []
     train_labels = []
@@ -118,7 +118,7 @@ def read_both_datasets(dataset_folders: List[List[str]]):
     return (train_inputs, train_labels, number_of_train_inputs, tests_inputs, tests_labels, number_of_tests_inputs)
     
 
-def read_dataset(dataset_folders: Union[str, List[str], List[List[str]]]):
+def read_dataset(dataset_folders: Union[str, list[str], list[list[str]]]):
     if not dataset_folders :
         return
     if isinstance(dataset_folders, str) :
@@ -139,7 +139,8 @@ def get_number_of_weights(layers_list):
     return number_of_weights
 
 
-def generate_multi_layer_perceptron_model(layers_list: List[int]):
+def generate_multi_layer_perceptron_model(layers_list: list[int]):
+    print("debug")
     layers = np.array(layers_list, dtype=ctypes.c_float)
     layers_as_c_float_array = (ctypes.c_float * len(layers))(*layers)
     number_of_layers = len(layers_as_c_float_array)
@@ -150,12 +151,12 @@ def generate_multi_layer_perceptron_model(layers_list: List[int]):
 
 
 def train_multi_layer_perceptron_model(is_classification: bool,
-                                       layers: Union[List[float], np.ndarray],
-                                       training_inputs: Union[List[float], np.ndarray],
-                                       tests_inputs: Union[List[float], np.ndarray],
-                                       training_labels: Union[List[float], np.ndarray],
-                                       tests_labels: Union[List[float], np.ndarray],
-                                       model: Union[List[float], np.ndarray],
+                                       layers: Union[list[float], np.ndarray],
+                                       training_inputs: Union[list[float], np.ndarray],
+                                       tests_inputs: Union[list[float], np.ndarray],
+                                       training_labels: Union[list[float], np.ndarray],
+                                       tests_labels: Union[list[float], np.ndarray],
+                                       model: Union[list[float], np.ndarray],
                                        learning_rate: float,
                                        number_of_epochs: float,
                                        number_of_training_inputs: int = 0,
@@ -187,7 +188,7 @@ def train_multi_layer_perceptron_model(is_classification: bool,
     if number_of_classes < 1 :
         raise ValueError
     
-    if isinstance(layers, List):
+    if isinstance(layers, list):
         layers = np.array(layers, dtype=ctypes.c_float)
     if not isinstance(layers, np.ndarray):
         raise TypeError
@@ -227,6 +228,8 @@ def train_multi_layer_perceptron_model(is_classification: bool,
     tests_labels_as_c_float_array = (ctypes.c_float * (number_of_tests_inputs * number_of_classes))(*tests_labels)
     pointer_to_tests_labels = ctypes.cast(tests_labels_as_c_float_array, POINTER_TO_FLOAT_ARRAY_TYPE)
     
+    if isinstance(model, list):
+        model = np.array(model, dtype=ctypes.c_float)
     if not isinstance(model, np.ndarray):
         raise TypeError
     number_of_weights = len(model)
@@ -275,9 +278,9 @@ def train_multi_layer_perceptron_model(is_classification: bool,
     
 
 def predict_with_multi_layer_perceptron_model(is_classification: bool,
-                                              layers: Union[List[float], np.ndarray],
-                                              inputs: Union[List[float], np.ndarray],
-                                              model: Union[List[float], np.ndarray],
+                                              layers: Union[list[float], np.ndarray],
+                                              inputs: Union[list[float], np.ndarray],
+                                              model: Union[list[float], np.ndarray],
                                               number_of_inputs: int = 0,
                                               dimensions_of_inputs: int = 0,
                                               number_of_classes: int = 0):
@@ -301,7 +304,7 @@ def predict_with_multi_layer_perceptron_model(is_classification: bool,
         raise ValueError
     
     
-    if isinstance(layers, List):
+    if isinstance(layers, list):
         layers = np.array(layers, dtype=ctypes.c_float)
     if not isinstance(layers, np.ndarray):
         raise TypeError

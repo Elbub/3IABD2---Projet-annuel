@@ -7,10 +7,16 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 struct AccuraciesAndLosses {
-    training_accuracy: Vec<f32>,
-    training_loss: Vec<f32>,
-    tests_accuracy: Vec<f32>,
-    tests_loss: Vec<f32>,
+    number_of_training_inputs : usize,
+    number_of_tests_inputs : usize,
+    number_of_epochs : usize,
+    batch_size : usize,
+    numbers_of_errors_on_training_dataset : Vec<usize>,
+    training_accuracies : Vec<f32>,
+    training_losses : Vec<f32>,
+    numbers_of_errors_on_tests_dataset : Vec<usize>,
+    tests_accuracies : Vec<f32>,
+    tests_losses : Vec<f32>,
 }
 
 #[no_mangle]
@@ -631,7 +637,7 @@ fn multi_layer_perceptron_predict_test( w:  Vec<Vec<Vec<f32>>>, // c'est le w en
 
 
 fn save_accuracy_and_losses_as_file(accuracies_and_losses: AccuraciesAndLosses) -> io::Result<()> {
-    let mut file = File::create("saved_accuracy.json")?;
+    let mut file = File::create("accuracies_and_losses.json")?;
     let accuracies_and_losses_to_string = serde_json::to_string(&accuracies_and_losses);
     write!(file, "{}", accuracies_and_losses_to_string.unwrap())?;
     Ok(())
@@ -688,28 +694,30 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
             w.push(w_l);
         }
 
-        let inputs_data = std::slice::from_raw_parts(pointer_to_training_inputs,
-                                                     number_of_training_inputs * dimension_of_inputs);
-        let labels = std::slice::from_raw_parts(pointer_to_training_labels,
+        let training_inputs = std::slice::from_raw_parts(pointer_to_training_inputs,
+                                                         number_of_training_inputs * dimension_of_inputs);
+        let training_labels = std::slice::from_raw_parts(pointer_to_training_labels,
                                                 number_of_training_inputs * number_of_classes);
 
-        let inputs_test = std::slice::from_raw_parts(pointer_to_tests_inputs,
+        let tests_inputs = std::slice::from_raw_parts(pointer_to_tests_inputs,
                                                      number_of_tests_inputs * dimension_of_inputs);
-        let labels_test = std::slice::from_raw_parts(pointer_to_tests_labels,
+        let tests_labels = std::slice::from_raw_parts(pointer_to_tests_labels,
                                                      number_of_tests_inputs * number_of_classes);
 
         use rand::thread_rng;
         use rand::seq::SliceRandom;
 
-        let mut accuracies_on_training_dataset: Vec<f32> = Vec::with_capacity(number_of_epochs);
-        let mut losses_on_training_dataset: Vec<f32> = Vec::with_capacity(number_of_epochs);
-        let mut accuracies_on_tests_dataset: Vec<f32> = Vec::with_capacity(number_of_epochs);
-        let mut losses_on_tests_dataset: Vec<f32> = Vec::with_capacity(number_of_epochs);
+        let mut numbers_of_errors_on_training_dataset: Vec<usize> = Vec::with_capacity(number_of_epochs / batch_size);
+        let mut accuracies_on_training_dataset: Vec<f32> = Vec::with_capacity(number_of_epochs / batch_size);
+        let mut losses_on_training_dataset: Vec<f32> = Vec::with_capacity(number_of_epochs / batch_size);
+        let mut numbers_of_errors_on_tests_dataset: Vec<usize> = Vec::with_capacity(number_of_epochs / batch_size);
+        let mut accuracies_on_tests_dataset: Vec<f32> = Vec::with_capacity(number_of_epochs / batch_size);
+        let mut losses_on_tests_dataset: Vec<f32> = Vec::with_capacity(number_of_epochs / batch_size);
 
         for epoch_number in 0..number_of_epochs {
             println!("Epochs {:?}",epoch_number + 1);
-            let check_accuracy_and_loss : bool = epoch_number % batch_size == 0;
-            let mut number_of_mispredicted_training_outputs:f32 = 0.;
+            let check_accuracy_and_loss : bool = (epoch_number + 1) % batch_size == 0;
+            let mut number_of_mispredicted_training_outputs:usize = 0;
             let mut training_squarred_errors_sum:f32 = 0.;
 
             let mut randomly_ordered_dataset: Vec<usize> = (0..number_of_training_inputs).collect();
@@ -720,15 +728,15 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
                 let size_of_x_0: usize = layers[0] as usize + 1;
                 let mut x_0: Vec<f32> = Vec::with_capacity(size_of_x_0);
                 x_0.push(1f32);
-                for j in 0..(size_of_x_0-1) {
-                    x_0.push(inputs_data[k * dimension_of_inputs + j]);
+                for j in 0..(size_of_x_0 - 1) {
+                    x_0.push(training_inputs[k * dimension_of_inputs + j]);
                 }
                 x.push(x_0);
 
                 let mut labels:Vec<f32> = Vec::with_capacity(number_of_classes + 1);
                 labels.push(1f32);
                 for class_number in 0..number_of_classes {
-                    labels.push(labels[k * number_of_classes + class_number]);
+                    labels.push(training_labels[k * number_of_classes + class_number]);
                 }
 
                 let mut delta : Vec<Vec<f32>> = Vec::with_capacity(number_of_layers);
@@ -763,7 +771,7 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
                     if check_accuracy_and_loss {
                         // Accuracy
                         if (delta[L][j] >= 1. || delta[L][j] <= -1.) && !is_mispredicted {
-                            number_of_mispredicted_training_outputs += 1.;
+                            number_of_mispredicted_training_outputs += 1;
                             is_mispredicted = true;
                         }
                         // Loss
@@ -795,16 +803,17 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
             }
 
             if check_accuracy_and_loss {
-                let training_accuracy:f32 = number_of_mispredicted_training_outputs / number_of_training_inputs as f32;
+                let training_accuracy:f32 = number_of_mispredicted_training_outputs as f32 / number_of_training_inputs as f32;
                 let training_loss:f32 = training_squarred_errors_sum / number_of_training_inputs as f32;
                 println!("Number of training inputs mispredicted : {:?}", number_of_mispredicted_training_outputs);
                 println!("Training inputs accuracy : {:?}", training_accuracy);
                 println!("Training inputs loss : {:?}", training_loss);
+                numbers_of_errors_on_training_dataset.push(number_of_mispredicted_training_outputs);
                 accuracies_on_training_dataset.push(training_accuracy);
                 losses_on_training_dataset.push(training_loss);
 
                 let precicted_labels = multi_layer_perceptron_predict_test(w.clone(),
-                                                                        inputs_test.clone(),
+                                                                        tests_inputs.clone(),
                                                                         number_of_tests_inputs,
                                                                         dimension_of_inputs,
                                                                         number_of_classes,
@@ -812,35 +821,42 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
                                                                         number_of_layers,
                                                                         is_classification);
                 
-                let mut number_of_mispredicted_tests_outputs:f32 = 0.;
+                let mut number_of_mispredicted_tests_outputs:usize = 0;
                 let mut tests_squarred_errors_sum:f32 = 0.;
                 
                 for i in (0..(number_of_tests_inputs * number_of_classes)).step_by(number_of_classes) {
                     let mut is_mispredicted = false;
                     for j in 0..number_of_classes {
-                        let delta_test = labels_test[i+j] - precicted_labels.clone()[i+j];
+                        let delta_test = tests_labels[i+j] - precicted_labels.clone()[i+j];
                         if !is_mispredicted && (delta_test >= 1. || delta_test <= -1.) {
-                            number_of_mispredicted_tests_outputs += 1.;
+                            number_of_mispredicted_tests_outputs += 1;
                             is_mispredicted = true;
                         }
                         tests_squarred_errors_sum += delta_test * delta_test;
                     }
                 }
-                let tests_accuracy:f32 = number_of_mispredicted_tests_outputs / number_of_tests_inputs as f32;
+                let tests_accuracy:f32 = number_of_mispredicted_tests_outputs as f32 / number_of_tests_inputs as f32;
                 let tests_loss:f32 = tests_squarred_errors_sum / number_of_tests_inputs as f32;
                 println!("Number of tests inputs mispredicted : {:?}", number_of_mispredicted_tests_outputs);
                 println!("Tests inputs accuracy: {:?}", tests_accuracy);
                 println!("Tests inputs loss : {:?}", training_loss);
+                numbers_of_errors_on_tests_dataset.push(number_of_mispredicted_tests_outputs);
                 accuracies_on_tests_dataset.push(tests_accuracy);
                 losses_on_tests_dataset.push(tests_loss);
             }
         }
 
         let mut accuracies_and_losses = AccuraciesAndLosses {
-            training_accuracy: accuracies_on_training_dataset,
-            training_loss: losses_on_training_dataset,
-            tests_accuracy: accuracies_on_tests_dataset,
-            tests_loss: losses_on_tests_dataset,
+            number_of_training_inputs : number_of_training_inputs,
+            number_of_tests_inputs : number_of_tests_inputs,
+            number_of_epochs : number_of_epochs,
+            batch_size : batch_size,
+            numbers_of_errors_on_training_dataset : numbers_of_errors_on_training_dataset,
+            training_accuracies : accuracies_on_training_dataset,
+            training_losses : losses_on_training_dataset,
+            numbers_of_errors_on_tests_dataset : numbers_of_errors_on_tests_dataset,
+            tests_accuracies : accuracies_on_tests_dataset,
+            tests_losses : losses_on_tests_dataset,
         };
         save_accuracy_and_losses_as_file(accuracies_and_losses).expect("Doesn't work");
         

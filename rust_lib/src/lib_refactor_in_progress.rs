@@ -86,11 +86,11 @@ extern "C" fn generate_random_w(dimension: usize) -> *mut f32 {
     use rand::Rng;
     let mut rng = rand::thread_rng();
     let number_of_parameters: usize = dimension;
-    let mut w: Vec<f32> = Vec::with_capacity(number_of_parameters + 1);   // w : contient les poids associés aux Xi
+    let mut weights: Vec<f32> = Vec::with_capacity(number_of_parameters + 1);   // weights : contient les poids associés aux Xi
     for _ in 0..number_of_parameters + 1 {
-        w.push(rng.gen_range(0f32..1f32)); // initialisation aléatoire entre 0 et 1
+        weights.push(rng.gen_range(0f32..1f32)); // initialisation aléatoire entre 0 et 1
     }
-    let arr_slice = w.leak();
+    let arr_slice = weights.leak();
     arr_slice.as_mut_ptr()
 }
 
@@ -102,7 +102,7 @@ extern "C" fn linear_model_training(pointer_to_model: *mut f32, pointer_to_label
                                                        arr_size * arr_dimension);
         let labels = std::slice::from_raw_parts(pointer_to_labels,
                                                 arr_size);
-        let mut w = Vec::from_raw_parts(
+        let mut weights = Vec::from_raw_parts(
             pointer_to_model, arr_dimension + 1, arr_dimension + 1);
         let mut rng = rand::thread_rng();
         for _ in 0..number_of_epochs {
@@ -115,14 +115,14 @@ extern "C" fn linear_model_training(pointer_to_model: *mut f32, pointer_to_label
             }
             let mut signal: f32 = 0f32;
             for i in 0..arr_dimension + 1 {
-                signal += w[i] * x_k[i];
+                signal += weights[i] * x_k[i];
             }
             let mut g_x_k: f32 = 0.0; // on avait 0.0 pour des cas 0 ou 1 en output
             if signal >= 0f32 {
                 g_x_k = 1f32;
             }
             for i in 0..arr_dimension + 1 {
-                w[i] += learning_rate * (y_k - g_x_k) * x_k[i];
+                weights[i] += learning_rate * (y_k - g_x_k) * x_k[i];
             }
         }
         // else {
@@ -141,19 +141,19 @@ extern "C" fn linear_model_training(pointer_to_model: *mut f32, pointer_to_label
         //         }
         //         let mut signal: f32 = 0f32;
         //         for i in 0..arr_dimension + 1 {
-        //             signal += w[i] * x_k[i];
+        //             signal += weights[i] * x_k[i];
         //         }
         //         let mut g_x_k: f32 = -1.0; // on avait 0.0 pour des cas 0 ou 1 en output
         //         if signal >= 0f32 {
         //             g_x_k = 1f32;
         //         }
         //         for i in 0..arr_dimension + 1 {
-        //             w[i] += learning_rate * (y_k - g_x_k) * x_k[i];
+        //             weights[i] += learning_rate * (y_k - g_x_k) * x_k[i];
         //         }
         //     }
         // }
 
-        let arr_slice = w.leak();
+        let arr_slice = weights.leak();
         arr_slice.as_mut_ptr()
     }
 }
@@ -161,7 +161,7 @@ extern "C" fn linear_model_training(pointer_to_model: *mut f32, pointer_to_label
 #[no_mangle]
 extern "C" fn find_w_linear_regression(pointer_to_x: *mut f32, pointer_to_y: *mut f32, nombre_lignes_x: usize, nombre_colonnes_x: usize, nombre_lignes_y:usize, nombre_colonnes_y: usize) -> *mut f32 {
     unsafe {
-        // let mut w = Vec::with_capacity(nombre_lignes_x_et_y);
+        // let mut weights = Vec::with_capacity(nombre_lignes_x_et_y);
         use nalgebra::*;
         use rand::Rng;
 
@@ -186,40 +186,42 @@ extern "C" fn find_w_linear_regression(pointer_to_x: *mut f32, pointer_to_y: *mu
             }
         }
 
+        
+        // let x_transpose:DMatrix<f32> = x_mat.clone().transpose();
+        // let mut x_t_mult_x = x_transpose.clone() * x_mat.clone();
+        // let det = x_t_mult_x.clone().determinant();
 
-        let x_transpose:DMatrix<f32> = x_mat.clone().transpose();
-        let mut x_t_mult_x = x_transpose.clone() * x_mat.clone();
-        let det = x_t_mult_x.clone().determinant();
-
-        if det == 0.0{
-            let mut rng = rand::thread_rng();
-            for i in 0..(nombre_colonnes_x+1) {
-                for j in 0..(nombre_colonnes_x+1) {
-                    x_t_mult_x[(i,j)] = x_t_mult_x[(i,j)] + rng.gen_range(-0.005..0.005);
-                }
-            }
-        }
+        // if det == 0.0{
+        //     let mut rng = rand::thread_rng();
+        //     for i in 0..(nombre_colonnes_x+1) {
+        //         for j in 0..(nombre_colonnes_x+1) {
+        //             x_t_mult_x[(i,j)] = x_t_mult_x[(i,j)] + rng.gen_range(-0.005..0.005);
+        //         }
+        //     }
+        // }
 
 
 
-        let inv_x_t_x = x_t_mult_x.try_inverse();
+        // let inv_x_t_x = x_t_mult_x.try_inverse();
 
-        let inv_times_x_t = match inv_x_t_x {
-            Some(inv) => inv * x_transpose.clone(),
-            None => panic!("Non inversible"),
-        };
+        // let inv_times_x_t = match inv_x_t_x {
+        //     Some(inv) => inv * x_transpose.clone(),
+        //     None => panic!("Non inversible"),
+        // };
+        
+        inv_times_x_t = matrix_pseudo_inverse(x_mat);
 
         let result_matrix = inv_times_x_t * y_mat;
 
-        let mut w: Vec<f32> = Vec::with_capacity(nombre_colonnes_x * nombre_colonnes_y + 1);
+        let mut weights: Vec<f32> = Vec::with_capacity(nombre_colonnes_x * nombre_colonnes_y + 1);
 
         for i in 0..nombre_colonnes_x+1 {
             for j in 0..nombre_colonnes_y {
-                w.push(result_matrix[(i,j)]);
+                weights.push(result_matrix[(i,j)]);
             }
         }
 
-        let arr_slice = w.leak();
+        let arr_slice = weights.leak();
         arr_slice.as_mut_ptr()
     }
 }
@@ -268,16 +270,16 @@ extern "C" fn x_transpose_times_x(pointer_to_x: *mut f32, longueur_x: usize, col
         let x_transpose:DMatrix<f32> = x_mat.clone().transpose();
         let x_t_mult_x = x_transpose.clone() * x_mat.clone();
 
-        let mut w: Vec<f32> = Vec::with_capacity(colonnes_x * colonnes_x);
+        let mut weights: Vec<f32> = Vec::with_capacity(colonnes_x * colonnes_x);
 
         for i in 0..colonnes_x {
             for j in 0..colonnes_x {
-                w.push(x_t_mult_x[(i,j)]);
+                weights.push(x_t_mult_x[(i,j)]);
             }
         }
 
-        // let w: Vec<_> = x_mat.iter().cloned().collect();
-        let arr_slice = w.leak();
+        // let weights: Vec<_> = x_mat.iter().cloned().collect();
+        let arr_slice = weights.leak();
         arr_slice.as_mut_ptr()
     }
 }
@@ -308,30 +310,30 @@ extern "C" fn generate_multi_layer_perceptron_model(pointer_to_layers: *mut f32,
         let total_number_of_weights = get_number_of_w(pointer_to_layers, number_of_layers);
 
 
-        let mut w: Vec<f32> = Vec::with_capacity(total_number_of_weights);
+        let mut weights: Vec<f32> = Vec::with_capacity(total_number_of_weights);
 
         for _ in 0..total_number_of_weights {
-            w.push(rng.gen_range(-1f32..1f32));
+            weights.push(rng.gen_range(-1f32..1f32));
         }
         // for l in 0..(number_of_layers - 1) { // on calcule d'une couche à la suivante, donc on ne prend pas la première.
         //     // 3 -> 0 à 2
         //     for _ in 0..layers[l] as i32 + 1{
         //         // layers[0] = 2 -> 0 à 2
         //         // layers[1] = 2 -> 0 à 2
-        //         w.push(0f32);
-        //         // w = [0]
+        //         weights.push(0f32);
+        //         // weights = [0]
         //         for _ in 1..layers[l + 1] as i32 + 1{
         //             // layers[1] = 2 -> 1 à 2
         //             // layers[1] = 2 -> 1 à
-        //             w.push(rng.gen_range(-1f32..1f32));
-        //             // w = [0, 1]
+        //             weights.push(rng.gen_range(-1f32..1f32));
+        //             // weights = [0, 1]
         //         }
-        //         // w = [0, 1, 0,
+        //         // weights = [0, 1, 0,
         //     }
         // }
 
 
-        let arr_slice = w.leak();
+        let arr_slice = weights.leak();
         arr_slice.as_mut_ptr()
     }
 }
@@ -367,8 +369,8 @@ extern "C" fn train_multi_layer_perceptron_model_old(pointer_to_model: *mut f32,
         let w_param = std::slice::from_raw_parts(pointer_to_model, total_number_of_weights);
 
         let mut w_index:usize = 0;
-        let mut w: Vec<Vec<Vec<f32>>> = Vec::with_capacity(number_of_layers);
-        w.push(Vec::from(Vec::new())); // W[0] n'existe pas.
+        let mut weights: Vec<Vec<Vec<f32>>> = Vec::with_capacity(number_of_layers);
+        weights.push(Vec::from(Vec::new())); // W[0] n'existe pas.
 
         for l /*layer*/ in 0..(number_of_layers - 1) { // On calcule d'une couche à la suivante, donc on ne prend pas la première.
             let size_of_w_l: usize = layers[l] as usize + 1; // On rajoute 1 pour le neurone de biais
@@ -382,7 +384,7 @@ extern "C" fn train_multi_layer_perceptron_model_old(pointer_to_model: *mut f32,
                 }
                 w_l.push(w_l_i);
             }
-            w.push(w_l);
+            weights.push(w_l);
         }
 
 
@@ -425,7 +427,7 @@ extern "C" fn train_multi_layer_perceptron_model_old(pointer_to_model: *mut f32,
                     for j in 1..size_of_x_l {
                         let mut x_l_i = 0f32;
                         for i in 0..layers[l-1] as usize + 1{
-                            x_l_i += w[l][i][j-1] * x[l-1][i];
+                            x_l_i += weights[l][i][j-1] * x[l-1][i];
                         }
                         // si on est en régression et sur la derniere couche, on fait un truc spécial, sinon comme d'hab
                         if !is_classification && l==number_of_layers-1 {
@@ -450,7 +452,7 @@ extern "C" fn train_multi_layer_perceptron_model_old(pointer_to_model: *mut f32,
                     for i in 0..layers[l - 1] as usize + 1{
                         let mut weighed_sum_of_errors = 0f32;
                         for j in 1..layers[l] as usize + 1{
-                            weighed_sum_of_errors += w[l][i][j-1] * delta[l][j];
+                            weighed_sum_of_errors += weights[l][i][j-1] * delta[l][j];
                         }
                         delta[l-1][i] = (1f32 - x[l - 1][i] * x[l - 1][i]) * weighed_sum_of_errors;
                     }
@@ -459,7 +461,7 @@ extern "C" fn train_multi_layer_perceptron_model_old(pointer_to_model: *mut f32,
                 for l in 1..number_of_layers {
                     for i in 0..layers[l - 1] as usize + 1{
                         for j in 1..layers[l] as usize + 1{
-                            w[l][i][j-1] -= learning_rate * x[l - 1][i] * delta[l][j];
+                            weights[l][i][j-1] -= learning_rate * x[l - 1][i] * delta[l][j];
                         }
                     }
                 }
@@ -469,7 +471,7 @@ extern "C" fn train_multi_layer_perceptron_model_old(pointer_to_model: *mut f32,
         for l in 1..number_of_layers {
             for i in 0..layers[l-1] as usize + 1 {
                 for j in 1..layers[l] as usize + 1{
-                    w_return.push(w[l][i][j-1]);
+                    w_return.push(weights[l][i][j-1]);
                 }
             }
         }
@@ -509,8 +511,8 @@ extern "C" fn predict_with_multi_layer_perceptron_model(pointer_to_model: *mut f
         let w_param = std::slice::from_raw_parts(pointer_to_model, total_number_of_weights);
 
         let mut w_index:usize = 0;
-        let mut w: Vec<Vec<Vec<f32>>> = Vec::with_capacity(number_of_layers);
-        w.push(Vec::from(Vec::new())); // à chaque fois on veut avoir un w[l][i][j] avec rien dans notre couche l
+        let mut weights: Vec<Vec<Vec<f32>>> = Vec::with_capacity(number_of_layers);
+        weights.push(Vec::from(Vec::new())); // à chaque fois on veut avoir un weights[l][i][j] avec rien dans notre couche l
 
         for l /*layer*/ in 0..(number_of_layers - 1) { // on calcule d'une couche à la suivante, donc on ne prend pas la première.
             let size_of_w_l: usize = layers[l] as usize + 1; // on a rajouté 1 pour le biais
@@ -524,7 +526,7 @@ extern "C" fn predict_with_multi_layer_perceptron_model(pointer_to_model: *mut f
                 }
                 w_l.push(w_l_i);
             }
-            w.push(w_l);
+            weights.push(w_l);
         }
 
         let inputs_data = std::slice::from_raw_parts(pointer_to_inputs,
@@ -553,7 +555,7 @@ extern "C" fn predict_with_multi_layer_perceptron_model(pointer_to_model: *mut f
                 for j in 0..size_of_x_l {
                     let mut x_l_i = 0f32;
                     for i in 0..layers[l-1] as usize + 1{ // layers[0] = 2 + 1 = 3
-                        x_l_i += w[l][i][j] * x[l-1][i];
+                        x_l_i += weights[l][i][j] * x[l-1][i];
                     }
                     if !is_classification && l==number_of_layers-1 {
                         x_l.push(x_l_i);
@@ -575,10 +577,7 @@ extern "C" fn predict_with_multi_layer_perceptron_model(pointer_to_model: *mut f
 }
 
 
-
-// new
-
-fn multi_layer_perceptron_predict_test( w:  Vec<Vec<Vec<f32>>>, // c'est le w entrainé
+fn multi_layer_perceptron_predict_test( weights:  Vec<Vec<Vec<f32>>>, // c'est le weights entrainé
                                               inputs: &[f32], // les données qu'on veut prédire
                                               number_of_inputs: usize, // le nombre de données dans le pointeur d'au dessus
                                               dimension_of_inputs: usize, // dimension des inputs
@@ -617,7 +616,7 @@ fn multi_layer_perceptron_predict_test( w:  Vec<Vec<Vec<f32>>>, // c'est le w en
                 for j in 1..size_of_x_l {
                     let mut x_l_i = 0f32;
                     for i in 0..layers[l-1] as usize + 1{
-                        x_l_i += w[l][i][j - 1] * x[l-1][i];
+                        x_l_i += weights[l][i][j - 1] * x[l-1][i];
                     }
                     if !is_classification && l==number_of_layers-1 {
                         x_l.push(x_l_i);
@@ -677,8 +676,8 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
         let mut total_number_of_weights = get_number_of_w(pointer_to_layers, number_of_layers);
         let w_param = std::slice::from_raw_parts(pointer_to_model, total_number_of_weights);
         let mut w_index:usize = 0;
-        let mut w: Vec<Vec<Vec<f32>>> = Vec::with_capacity(number_of_layers);
-        w.push(Vec::from(Vec::new()));
+        let mut weights: Vec<Vec<Vec<f32>>> = Vec::with_capacity(number_of_layers);
+        weights.push(Vec::from(Vec::new()));
         for l in 0..(number_of_layers - 1) {
             let size_of_w_l: usize = layers[l] as usize + 1;
             let mut w_l: Vec<Vec<f32>> = Vec::with_capacity(size_of_w_l);
@@ -691,7 +690,7 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
                 }
                 w_l.push(w_l_i);
             }
-            w.push(w_l);
+            weights.push(w_l);
         }
 
         let training_inputs = std::slice::from_raw_parts(pointer_to_training_inputs,
@@ -750,7 +749,7 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
                     for j in 1..size_of_x_l {
                         let mut x_l_i = 0f32;
                         for i in 0..layers[l-1] as usize + 1{
-                            x_l_i += w[l][i][j-1] * x[l-1][i];
+                            x_l_i += weights[l][i][j-1] * x[l-1][i];
                         }
                         if !is_classification && l==number_of_layers-1 {
                             x_l.push(x_l_i);
@@ -787,7 +786,7 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
                     for i in 0..layers[l - 1] as usize + 1{
                         let mut weighted_sum_of_errors = 0f32;
                         for j in 1..layers[l] as usize + 1{
-                            weighted_sum_of_errors += w[l][i][j-1] * delta[l][j];
+                            weighted_sum_of_errors += weights[l][i][j-1] * delta[l][j];
                         }
                         delta[l-1][i] = (1f32 - x[l - 1][i] * x[l - 1][i]) * weighted_sum_of_errors;
                     }
@@ -796,7 +795,7 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
                 for l in 1..number_of_layers {
                     for i in 0..layers[l - 1] as usize + 1{
                         for j in 1..layers[l] as usize + 1{
-                            w[l][i][j-1] -= learning_rate * x[l - 1][i] * delta[l][j];
+                            weights[l][i][j-1] -= learning_rate * x[l - 1][i] * delta[l][j];
                         }
                     }
                 }
@@ -812,7 +811,7 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
                 accuracies_on_training_dataset.push(training_accuracy);
                 losses_on_training_dataset.push(training_loss);
 
-                let precicted_labels = multi_layer_perceptron_predict_test(w.clone(),
+                let precicted_labels = multi_layer_perceptron_predict_test(weights.clone(),
                                                                         tests_inputs.clone(),
                                                                         number_of_tests_inputs,
                                                                         dimension_of_inputs,
@@ -864,11 +863,99 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
         for l in 1..number_of_layers { 
             for i in 0..layers[l-1] as usize + 1 {
                 for j in 1..layers[l] as usize + 1{
-                    w_return.push(w[l][i][j-1]);
+                    w_return.push(weights[l][i][j-1]);
                 }
             }
         }
         let arr_slice = w_return.leak();
         arr_slice.as_mut_ptr()
     }
+}
+
+
+// new
+
+
+
+#[no_mangle]
+extern "C" fn matrix_pseudo_inverse(input_matrix: DMatrix<f32>) {
+    let x_transpose:DMatrix<f32> = input_matrix.clone().transpose();
+    let mut x_t_mult_x = x_transpose.clone() * input_matrix.clone();
+    let det = x_t_mult_x.clone().determinant();
+
+    if det == 0.0{
+        let mut rng = rand::thread_rng();
+        for i in 0..(nombre_colonnes_x+1) {
+            for j in 0..(nombre_colonnes_x+1) {
+                x_t_mult_x[(i,j)] = x_t_mult_x[(i,j)] + rng.gen_range(-0.005..0.005);
+            }
+        }
+    }
+
+
+
+    let inv_x_t_x = x_t_mult_x.try_inverse();
+
+    let inv_times_x_t = match inv_x_t_x {
+        Some(inv) => inv * x_transpose.clone(),
+        None => panic!("Non inversible"),
+    };
+    inv_times_x_t
+}
+
+
+#[no_mangle]
+extern "C" fn train_radial_basis_function_model(pointer_to_inputs : *mut f32,
+                                                number_of_inputs : usize,
+                                                dimension_of_inputs : usize,
+                                                pointer_to_labels : *mut f32,
+                                                number_of_labels : usize,
+                                                number_of_classes : usize,
+                                                gamma : f32,
+                                                is_classification : bool,
+                                                k : usize
+                                            ) -> *mut f32 {
+
+    unsafe{
+
+        let inputs = std::slice::from_raw_parts(pointer_to_inputs,
+                                                number_of_inputs * dimension_of_inputs);
+        let labels = std::slice::from_raw_parts(pointer_to_labels,
+                                                number_of_inputs * number_of_classes);
+
+        naive : bool = k == number_of_inputs;
+        
+        let mut phi:DMatrix<f32> = DMatrix::zeros(number_of_inputs, number_of_inputs + 1);
+        for i in 0..number_of_inputs {
+            phi[(i,0)] = 1f32;
+            for j in 1..(number_of_inputs + 1) {
+                let mut squarred_distance : f32 = 0
+                for dimension in 0..number_of_inputs {
+                    squarred_distance += (inputs[i][dimension] - inputs[j][dimension]) * (inputs[i][dimension] - inputs[j][dimension]);
+                }
+                phi[(i, j)] = exp(-gamma * squarred_distance);
+            }
+        }
+
+        phi_pseudo_inverse = matrix_pseudo_inverse(phi.clone());
+
+        let weights_as_matrix = phi_pseudo_inverse * y;
+        
+        let mut weights: Vec<f32> = Vec::with_capacity(number_of_inputs * number_of_classes);
+
+        for i in 0..number_of_inputs {
+            for j in 0..number_of_classes {
+                weights.push(result_matrix[(i,j)]);
+            }
+        }
+
+        let arr_slice = weights.leak();
+        arr_slice.as_mut_ptr()
+    }
+}
+
+
+#[no_mangle]
+extern "C" fn predict_with_radial_basis_function_model(){
+    
 }

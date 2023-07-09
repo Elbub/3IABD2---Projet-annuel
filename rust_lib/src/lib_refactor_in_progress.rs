@@ -157,7 +157,7 @@ extern "C" fn linear_model_training(pointer_to_model: *mut f32, pointer_to_label
         arr_slice.as_mut_ptr()
     }
 }
-
+ 
 #[no_mangle]
 extern "C" fn find_w_linear_regression(pointer_to_x: *mut f32, pointer_to_y: *mut f32, nombre_lignes_x: usize, nombre_colonnes_x: usize, nombre_lignes_y:usize, nombre_colonnes_y: usize) -> *mut f32 {
     unsafe {

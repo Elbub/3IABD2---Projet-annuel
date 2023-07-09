@@ -1,9 +1,10 @@
 // mod multy_layer_perceptron;
 
-use nalgebra::DMatrix;
+use nalgebra::{DMatrix, OMatrix};
 use std::fs::File;
 use std::io::{self, Write};
 use serde::{Deserialize, Serialize};
+use fast_math::exp;
 
 #[derive(Serialize, Deserialize)]
 struct AccuraciesAndLosses {
@@ -209,7 +210,7 @@ extern "C" fn find_w_linear_regression(pointer_to_x: *mut f32, pointer_to_y: *mu
         //     None => panic!("Non inversible"),
         // };
         
-        inv_times_x_t = matrix_pseudo_inverse(x_mat);
+        let inv_times_x_t = matrix_pseudo_inverse(x_mat,nombre_colonnes_x);
 
         let result_matrix = inv_times_x_t * y_mat;
 
@@ -875,23 +876,21 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
 
 // new
 
-
-
-#[no_mangle]
-extern "C" fn matrix_pseudo_inverse(input_matrix: DMatrix<f32>) {
-    let x_transpose:DMatrix<f32> = input_matrix.clone().transpose();
+fn matrix_pseudo_inverse(input_matrix: DMatrix<f32>, nombre_colonnes_x: usize) -> DMatrix<f32>{
+    let x_transpose = input_matrix.clone().transpose();
     let mut x_t_mult_x = x_transpose.clone() * input_matrix.clone();
-    let det = x_t_mult_x.clone().determinant();
+    let mut det = x_t_mult_x.clone().determinant();
+    use rand::Rng;
 
-    if det == 0.0{
+    while det >= -0.00005 && det <= 0.00005{
         let mut rng = rand::thread_rng();
-        for i in 0..(nombre_colonnes_x+1) {
-            for j in 0..(nombre_colonnes_x+1) {
+        for i in 0..(nombre_colonnes_x) {
+            for j in 0..(nombre_colonnes_x) {
                 x_t_mult_x[(i,j)] = x_t_mult_x[(i,j)] + rng.gen_range(-0.005..0.005);
             }
         }
+        det = x_t_mult_x.clone().determinant();
     }
-
 
 
     let inv_x_t_x = x_t_mult_x.try_inverse();
@@ -904,58 +903,148 @@ extern "C" fn matrix_pseudo_inverse(input_matrix: DMatrix<f32>) {
 }
 
 
+// #[no_mangle]
+// extern "C" fn train_radial_basis_function_model(pointer_to_inputs : *mut f32,
+//                                                 number_of_inputs : usize,
+//                                                 dimension_of_inputs : usize,
+//                                                 pointer_to_labels : *mut f32,
+//                                                 number_of_classes : usize,
+//                                                 gamma : f32,
+//                                                 number_of_clusters : usize
+//                                             ) -> *mut f32 {
+//
+//     unsafe{
+//
+//         let inputs = std::slice::from_raw_parts(pointer_to_inputs,
+//                                                 number_of_inputs * dimension_of_inputs);
+//         let labels = std::slice::from_raw_parts(pointer_to_labels,
+//                                                 number_of_inputs * number_of_classes);
+//
+//         naive : bool = number_of_clusters == number_of_inputs;
+//
+//         let mut phi:DMatrix<f32> = DMatrix::zeros(number_of_inputs, number_of_inputs + 1);
+//         for i in 0..number_of_inputs {
+//             phi[(i,0)] = 1f32;
+//             for j in 1..(number_of_inputs + 1) {
+//                 let mut squarred_distance : f32 = 0.0;
+//                 for dimension in 0..number_of_inputs {
+//                     squarred_distance += (inputs[i][dimension] - inputs[j][dimension]) * (inputs[i][dimension] - inputs[j][dimension]);
+//                 }
+//                 phi[(i, j)] = exp(-gamma * squarred_distance);
+//             }
+//         }
+//
+//         let phi_pseudo_inverse:DMatrix<f32> = matrix_pseudo_inverse(phi.clone());
+//
+//         let mut labels_as_matrix:DMatrix<f32> = DMatrix::zeros(number_of_inputs, number_of_classes);
+//         for i in 0..number_of_inputs {
+//             for j in 0..number_of_classes{
+//                 labels_as_matrix[(i, j)] = labels[i*number_of_classes+j];
+//             }
+//         }
+//
+//         let weights_as_matrix:DMatrix<f32> = phi_pseudo_inverse.clone() * labels_as_matrix;
+//
+//         let mut weights: Vec<f32> = Vec::with_capacity(number_of_inputs * number_of_classes);
+//
+//         for i in 0..number_of_inputs {
+//             for j in 0..number_of_classes {
+//                 weights.push(weights_as_matrix[(i,j)]);
+//             }
+//         }
+//
+//         let arr_slice = weights.leak();
+//         arr_slice.as_mut_ptr()
+//     }
+// }
+
+
+
+
 #[no_mangle]
-extern "C" fn train_radial_basis_function_model(pointer_to_inputs : *mut f32,
-                                                number_of_inputs : usize,
+extern "C" fn radial_basis_function_model(      pointer_to_inputs_train : *mut f32,
+                                                number_of_training_inputs : usize,
+                                                pointer_to_inputs_to_predict : *mut f32,
+                                                number_of_inputs_to_predict : usize,
                                                 dimension_of_inputs : usize,
                                                 pointer_to_labels : *mut f32,
-                                                number_of_labels : usize,
                                                 number_of_classes : usize,
                                                 gamma : f32,
                                                 is_classification : bool,
-                                                k : usize
-                                            ) -> *mut f32 {
+                                                number_of_clusters : usize
+) -> *mut f32 {
 
     unsafe{
-
-        let inputs = std::slice::from_raw_parts(pointer_to_inputs,
-                                                number_of_inputs * dimension_of_inputs);
+        let inputs_train = std::slice::from_raw_parts(pointer_to_inputs_train,
+                                                      number_of_training_inputs * dimension_of_inputs);
         let labels = std::slice::from_raw_parts(pointer_to_labels,
-                                                number_of_inputs * number_of_classes);
+                                                number_of_training_inputs * number_of_classes);
 
-        naive : bool = k == number_of_inputs;
-        
-        let mut phi:DMatrix<f32> = DMatrix::zeros(number_of_inputs, number_of_inputs + 1);
-        for i in 0..number_of_inputs {
+        let inputs_to_predict = std::slice::from_raw_parts(pointer_to_inputs_to_predict,
+                                                           number_of_inputs_to_predict * dimension_of_inputs);
+
+        let naive : bool = number_of_clusters == number_of_training_inputs;
+
+        let mut phi:DMatrix<f32> = DMatrix::zeros(number_of_training_inputs, number_of_training_inputs + 1);
+        for i in 0..number_of_training_inputs {
             phi[(i,0)] = 1f32;
-            for j in 1..(number_of_inputs + 1) {
-                let mut squarred_distance : f32 = 0
-                for dimension in 0..number_of_inputs {
-                    squarred_distance += (inputs[i][dimension] - inputs[j][dimension]) * (inputs[i][dimension] - inputs[j][dimension]);
+            for j in 0..number_of_clusters {
+                let mut squarred_distance : f32 = 0.0;
+                for dimension in 0..dimension_of_inputs {
+                    squarred_distance += (inputs_train[i*dimension_of_inputs+dimension] - inputs_train[j*dimension_of_inputs+dimension]) * (inputs_train[i*dimension_of_inputs+dimension] - inputs_train[j*dimension_of_inputs+dimension]);
                 }
-                phi[(i, j)] = exp(-gamma * squarred_distance);
+                phi[(i, j+1)] = exp(-gamma * squarred_distance);
+            }
+        }
+        let phi_pseudo_inverse:DMatrix<f32> = matrix_pseudo_inverse(phi.clone(),number_of_clusters+1);
+
+        let mut labels_as_matrix:DMatrix<f32> = DMatrix::zeros(number_of_training_inputs, number_of_classes);
+        for i in 0..number_of_training_inputs {
+            for j in 0..number_of_classes{
+                labels_as_matrix[(i, j)] = labels[i*number_of_classes+j];
             }
         }
 
-        phi_pseudo_inverse = matrix_pseudo_inverse(phi.clone());
+        let weights_as_matrix:DMatrix<f32> = phi_pseudo_inverse.clone() * labels_as_matrix;
 
-        let weights_as_matrix = phi_pseudo_inverse * y;
-        
-        let mut weights: Vec<f32> = Vec::with_capacity(number_of_inputs * number_of_classes);
+        // let mut weights: Vec<f32> = Vec::with_capacity(number_of_training_inputs * number_of_classes);
+        //
+        // for i in 0..number_of_training_inputs {
+        //     for j in 0..number_of_classes {
+        //         weights.push(weights_as_matrix[(i,j)]);
+        //     }
+        // }
 
-        for i in 0..number_of_inputs {
+        let mut outputs:Vec<Vec<f32>> = Vec::with_capacity(number_of_inputs_to_predict);
+        for i in 0..number_of_inputs_to_predict {
+            let mut output:Vec<f32> = Vec::with_capacity(number_of_classes);
             for j in 0..number_of_classes {
-                weights.push(result_matrix[(i,j)]);
+                let mut weighted_sum:f32 = weights_as_matrix[(0,j)];
+                for k in 1..(number_of_clusters+1) {
+                    let mut squarred_distance: f32 = 0.0;
+                    for dimension in 0..dimension_of_inputs {
+                        squarred_distance += (inputs_to_predict[i*dimension_of_inputs+dimension] - inputs_train[(k-1)*dimension_of_inputs+dimension]) * (inputs_to_predict[i*dimension_of_inputs+dimension] - inputs_train[(k-1)*dimension_of_inputs+dimension]);
+                    }
+                    weighted_sum += weights_as_matrix[(k,j)]*exp(-gamma * squarred_distance);
+                }
+                if is_classification {
+                    output.push(weighted_sum.tanh());
+                } else {
+                    output.push(weighted_sum)
+                }
+            }
+            outputs.push(output);
+        }
+        let mut output_return = Vec::with_capacity(number_of_inputs_to_predict*number_of_classes);
+        for l in 0..number_of_inputs_to_predict {
+            for i in 0..number_of_classes {
+                output_return.push(outputs[l][i]);
             }
         }
 
-        let arr_slice = weights.leak();
+        let arr_slice = output_return.leak();
         arr_slice.as_mut_ptr()
+
+
     }
-}
-
-
-#[no_mangle]
-extern "C" fn predict_with_radial_basis_function_model(){
-    
 }

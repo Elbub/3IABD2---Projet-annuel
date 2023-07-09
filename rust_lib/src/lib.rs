@@ -3,6 +3,7 @@
 use std::fs::File;
 use nalgebra::DMatrix;
 use std::io::{self, Write}; // bring trait into scope
+use fast_math;
 
 #[no_mangle]
 pub extern "C" fn points_array(number_of_points: usize, dimension: usize) -> *mut f32{

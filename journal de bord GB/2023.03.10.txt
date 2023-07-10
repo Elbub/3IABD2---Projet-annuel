@@ -1,2 +1,0 @@
-Created the git repo
-Copied and rearranged the GUI from Ino-Rope's test bench driving software.

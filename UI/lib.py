@@ -55,6 +55,13 @@ rust_machine_learning_library.predict_with_multi_layer_perceptron_model.argtypes
 rust_machine_learning_library.predict_with_multi_layer_perceptron_model.restype = ctypes.POINTER(ctypes.c_float)
 
 
+def get_number_of_weights(layers_list):
+    number_of_weights = 0
+    for index in range(len(layers_list) - 1):
+        number_of_weights += (layers_list[index] + 1) * layers_list[index + 1]
+    return number_of_weights
+
+
 def read_only_train_dataset(dataset_folders: Union[str, list[str]]):
     inputs = []
     labels = []
@@ -126,17 +133,6 @@ def read_dataset(dataset_folders: Union[str, list[str], list[list[str]]]):
     if isinstance(dataset_folders[0], str) :
         return read_only_train_dataset(dataset_folders)
     return read_both_datasets(dataset_folders)
-
-
-def resize_images():
-    pass
-
-
-def get_number_of_weights(layers_list):
-    number_of_weights = 0
-    for index in range(len(layers_list) - 1):
-        number_of_weights += (layers_list[index] + 1) * layers_list[index + 1]
-    return number_of_weights
 
 
 def generate_multi_layer_perceptron_model(layers_list: list[int]):
@@ -271,6 +267,12 @@ def train_multi_layer_perceptron_model(is_classification: bool,
                                                                                                 batch_size,
                                                                                                 is_classification
                                                                                                )
+    # rust_machine_learning_library.delete_float_array(pointer_to_model, number_of_weights)
+    # rust_machine_learning_library.delete_float_array(pointer_to_layers, number_of_layers)
+    # rust_machine_learning_library.delete_float_array(pointer_to_training_inputs, number_of_training_inputs)
+    # rust_machine_learning_library.delete_float_array(pointer_to_tests_inputs, number_of_tests_inputs)
+    # rust_machine_learning_library.delete_float_array(pointer_to_training_labels, number_of_training_inputs)
+    # rust_machine_learning_library.delete_float_array(pointer_to_tests_labels, number_of_tests_inputs)
     print("The model has been trained.")
     print(time.time() - timer)
     trained_model = np.ctypeslib.as_array(pointer_to_trained_model, (number_of_weights,))
@@ -322,6 +324,8 @@ def predict_with_multi_layer_perceptron_model(is_classification: bool,
     inputs_as_c_float_array = (ctypes.c_float * (number_of_inputs * dimensions_of_inputs))(*inputs)
     pointer_to_inputs = ctypes.cast(inputs_as_c_float_array, POINTER_TO_FLOAT_ARRAY_TYPE)
     
+    if isinstance(model, list) :
+        model = np.array(model)
     if not isinstance(model, np.ndarray):
         raise TypeError
     number_of_weights = len(model)
@@ -340,6 +344,9 @@ def predict_with_multi_layer_perceptron_model(is_classification: bool,
                                                                                                            number_of_classes,
                                                                                                            is_classification
                                                                                                           )
+    # rust_machine_learning_library.delete_float_array(pointer_to_model, number_of_weights)
+    # rust_machine_learning_library.delete_float_array(pointer_to_layers, number_of_layers)
+    # rust_machine_learning_library.delete_float_array(pointer_to_inputs, number_of_inputs)
 
     predicted_classes = np.ctypeslib.as_array(pointer_to_predicted_classes, (number_of_inputs * number_of_classes, ))
     return predicted_classes

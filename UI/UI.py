@@ -18,6 +18,7 @@ from json import dump, load
 
 ### Interops
 import lib
+import ctypes
 
 ### Divers
 from typing import *
@@ -187,6 +188,15 @@ def fonction_principale():
         
         EN : Test's initial values configuration window."""
 
+        def empty_hidden_layers():
+            """FR : Supprime toutes les consignes.
+            
+            EN : Deletes all the setpoints."""
+            start_training_button["state"] = "normal",
+            nonlocal layers
+            layers = [layers[0], layers[-1]]
+        #V
+        
         def edit_layers():
             """FR : Fenêtre de configuration des consignes à suivre pendant l'essai.
             
@@ -257,16 +267,7 @@ def fonction_principale():
                 if validation :
                     return neurons_number.get()
             #V
-            
-            def empty_hidden_layers():
-                """FR : Supprime toutes les consignes.
-                
-                EN : Deletes all the setpoints."""
-                nonlocal layers
-                layers = [layers[0], layers[-1]]
-                return layers_display_update()
-            #V
-            
+        
             def cancel_changes():
                 """FR : Annule les changements et restore la lsite de consignes précédente.
                 
@@ -326,7 +327,8 @@ def fonction_principale():
                 current_layer_frame = LabelFrame(internal_layers_frame, text = f"Input layer")
                 current_layer_frame.grid(row = 2, column = 0, columnspan = 3, padx = 5, pady = 4, sticky = 'w' + 'e')
                 Label(current_layer_frame, text = f"{model['layers'][0]} neuron(s)").grid(row = 1, column = 0, padx = 5, pady = 4, sticky = 'w')
-                Button(internal_layers_frame, text = "Add layer", command = lambda : add_layer(1)).grid(row = 3, column = 1, padx = 5, pady = 5, sticky = 'e')
+                if model_type.get() == "MLP" :
+                    Button(internal_layers_frame, text = "Add layer", command = lambda : add_layer(1)).grid(row = 3, column = 1, padx = 5, pady = 5, sticky = 'e')
                         
                 layer_index = 1
                 for layer in layers[1:-1] :
@@ -335,9 +337,11 @@ def fonction_principale():
                     current_layer_frame = LabelFrame(internal_layers_frame, text = f"Hidden layer {layer_index - 1}")
                     current_layer_frame.grid(row = (2 * layer_index), column = 0, columnspan = 3, padx = 5, pady = 4, sticky = 'w' + 'e')
                     Label(current_layer_frame, text = f"{layer} neuron(s)").grid(row = 1, column = 0, padx = 5, pady = 4, sticky = 'w')
-                    Button(current_layer_frame, text = "Delete layer", command = lambda i = layer_index - 1 : delete_layer(i)).grid(row = 1, column = 1, padx = 5, pady = 5)
+                    if model_type.get() == "MLP" :
+                        Button(current_layer_frame, text = "Delete layer", command = lambda i = layer_index - 1 : delete_layer(i)).grid(row = 1, column = 1, padx = 5, pady = 5)
                     Button(current_layer_frame, text = "Update layer", command = lambda i = layer_index - 1 : update_layer(i)).grid(row = 1, column = 2, padx = 5, pady = 5, sticky = 'e')
-                    Button(internal_layers_frame, text = "Add layer", command = lambda i = layer_index : add_layer(i)).grid(row = (2 * layer_index + 1), column = 1, padx = 5, pady = 5, sticky = 'e')
+                    if model_type.get() == "MLP" :
+                        Button(internal_layers_frame, text = "Add layer", command = lambda i = layer_index : add_layer(i)).grid(row = (2 * layer_index + 1), column = 1, padx = 5, pady = 5, sticky = 'e')
                     internal_layers_frame.columnconfigure(0, weight = 1)
                     internal_layers_frame.columnconfigure(1, weight = 1)
                     internal_layers_frame.columnconfigure(2, weight = 1)
@@ -347,7 +351,8 @@ def fonction_principale():
                 Label(current_layer_frame, text = f"{model['layers'][-1]} neuron(s)").grid(row = 1, column = 0, padx = 5, pady = 4, sticky = 'w')
                 
                 Button(internal_layers_frame, text = "Cancel", command = cancel_changes).grid(row = (2 * MAX_LAYER_NUMBER + 2), column = 0, padx = 5, pady = 5)
-                Button(internal_layers_frame, text = "Empty hidden layers", command = empty_hidden_layers).grid(row = (2 * MAX_LAYER_NUMBER + 2), column = 1, padx = 5, pady = 5)
+                if model_type.get() == "MLP" :
+                    Button(internal_layers_frame, text = "Empty hidden layers", command = lambda : [empty_hidden_layers(), layers_display_update()]).grid(row = (2 * MAX_LAYER_NUMBER + 2), column = 1, padx = 5, pady = 5)
                 Button(internal_layers_frame, text = "Validate", command = lambda : [layers_edit_window.destroy(), display_model_specs()]).grid(row = (2 * MAX_LAYER_NUMBER + 2), column = 2, padx = 5, pady = 5)
             #V
 
@@ -382,28 +387,21 @@ def fonction_principale():
             layers_edit_window.mainloop()
         #V
         
+        def edit_number_of_clusters() :
+            start_training_button["state"] = "disabled"
+            empty_hidden_layers()
+            nonlocal layers
+            layers.append(1)
+            layers[1], layers[2] = layers[2], layers[1]
+        
+        
         def display_model_specs():
             # Is okay
             """ """
             nonlocal layers
             for widget in model_type_frame.winfo_children()[4:] :
                 widget.destroy()
-                
-            # match model_type.get() :
-            #     case "Linear" :
-            #         #TODO : check how I did the dic-filling window
-            #         Label(model_type_frame, text = f'{layers[0]} input(s), {layers[-1]} output(s)').grid(row = 2, column = 0, columnspan = 3, padx = 10, pady = 10)
-            #     case "MLP" :
-            #         Label(model_type_frame, text = f'{layers[0]} input(s), {len(layers) - 2} hidden layers, {layers[-1]} output(s)').grid(row = 2, column = 0, columnspan = 3, padx = 10, pady = 10)
-            #         Button(model_type_frame, text = "Edit layers", command = edit_layers).grid(row = 2, column = 3, padx = 10, pady = 10)
-            #     case "SVM" :
-            #         Label(model_type_frame, text = f'{layers[0]} input(s), {len(layers) - 2} hidden layers, {layers[-1]} output(s)').grid(row = 2, column = 0, columnspan = 3, padx = 10, pady = 10)
-            #         Button(model_type_frame, text = "Edit layers", command = edit_layers).grid(row = 2, column = 3, padx = 10, pady = 10)
-            #     case "RBF" :
-            #         Label(model_type_frame, text = f'{layers[0]} input(s), {len(layers) - 2} hidden layers, {layers[-1]} output(s)').grid(row = 2, column = 0, columnspan = 3, padx = 10, pady = 10)
-            #         Button(model_type_frame, text = "Edit layers", command = edit_layers).grid(row = 2, column = 3, padx = 10, pady = 10)
-            #     case _ :
-            #         pass
+            
             if model_type.get() == "Linear" :
                 #TODO : check how I did the dic-filling window
                 Label(model_type_frame, text = f'{layers[0]} input(s), {layers[-1]} output(s)').grid(row = 2, column = 0, columnspan = 3, padx = 10, pady = 10)
@@ -411,11 +409,11 @@ def fonction_principale():
                 Label(model_type_frame, text = f'{layers[0]} input(s), {len(layers) - 2} hidden layers, {layers[-1]} output(s)').grid(row = 2, column = 0, columnspan = 3, padx = 10, pady = 10)
                 Button(model_type_frame, text = "Edit layers", command = edit_layers).grid(row = 2, column = 3, padx = 10, pady = 10)
             elif model_type.get() == "SVM" :
-                Label(model_type_frame, text = f'{layers[0]} input(s), {len(layers) - 2} hidden layers, {layers[-1]} output(s)').grid(row = 2, column = 0, columnspan = 3, padx = 10, pady = 10)
-                Button(model_type_frame, text = "Edit layers", command = edit_layers).grid(row = 2, column = 3, padx = 10, pady = 10)
+                pass
+                # Label(model_type_frame, text = f'{layers[0]} input(s), {len(layers) - 2} hidden layers, {layers[-1]} output(s)').grid(row = 2, column = 0, columnspan = 3, padx = 10, pady = 10)
             elif model_type.get() == "RBF" :
                 Label(model_type_frame, text = f'{layers[0]} input(s), {len(layers) - 2} hidden layers, {layers[-1]} output(s)').grid(row = 2, column = 0, columnspan = 3, padx = 10, pady = 10)
-                Button(model_type_frame, text = "Edit layers", command = edit_layers).grid(row = 2, column = 3, padx = 10, pady = 10)
+                Button(model_type_frame, text = "Edit layers", command = edit_number_of_clusters).grid(row = 2, column = 3, padx = 10, pady = 10)
             else :
                 pass
         #PV   facultatif
@@ -564,10 +562,10 @@ def fonction_principale():
         
         model_type_frame = LabelFrame(entries_window, text = "Model type :")
         model_type_frame.grid(row = 1, columnspan = 7, column = 0, padx = 10, pady = 10)
-        Radiobutton(model_type_frame, text = "Linear", variable = model_type, value = "Linear", command = display_model_specs).grid(row = 0, column = 0, padx = 5, pady = 5)
-        Radiobutton(model_type_frame, text = "Multi-layer perceptron", variable = model_type, value = "MLP", command = display_model_specs).grid(row = 0, column = 1, padx = 5, pady = 5)
-        Radiobutton(model_type_frame, text = "Support vector machine", variable = model_type, value = "SVM", command = display_model_specs).grid(row = 0, column = 2, padx = 5, pady = 5)
-        Radiobutton(model_type_frame, text = "Radial basis function", variable = model_type, value = "RBF", command = display_model_specs).grid(row = 0, column = 3, padx = 5, pady = 5)
+        Radiobutton(model_type_frame, text = "Linear", variable = model_type, value = "Linear", command = lambda : [empty_hidden_layers(), display_model_specs()]).grid(row = 0, column = 0, padx = 5, pady = 5)
+        Radiobutton(model_type_frame, text = "Multi-layer perceptron", variable = model_type, value = "MLP", command = lambda : [empty_hidden_layers(), display_model_specs()]).grid(row = 0, column = 1, padx = 5, pady = 5)
+        # Radiobutton(model_type_frame, text = "Support vector machine", variable = model_type, value = "SVM", command = display_model_specs).grid(row = 0, column = 2, padx = 5, pady = 5)
+        Radiobutton(model_type_frame, text = "Radial basis function", variable = model_type, value = "RBF", command = lambda : [edit_number_of_clusters(), display_model_specs()]).grid(row = 0, column = 3, padx = 5, pady = 5)
         
         Label( entries_window, text = "Task type :").grid(row = 2, column = 0, padx = 10, pady = 10)
         Radiobutton(entries_window, text = "Classification", variable = is_classification, value = True).grid(row = 2, column = 1, columnspan = 3, padx = 5, pady = 5)
@@ -690,35 +688,65 @@ def fonction_principale():
         os.remove("accuracies_and_losses.json")
     #PV
     
-    def predict_with_mlp():
+    def predict_with_mlp(on_new_data : bool = False):
         """FR : 
         
         EN : """
+        if on_new_data :
+            resized_image = None
+            filepath = askopenfilename(title = "Load model", initialdir = MODELS_SAVE_FOLDER, filetypes = [("fichier json", "*.jpg")])
+            if filepath :
+                print(filepath)
+                image_file = Image.open(filepath)
+                converted_image = image_file.convert("RGB" if model["inputs_color"] == 3 else "L")
+                resized_image = converted_image.resize((int(model["inputs_width"]), int(model["inputs_height"])))
+                if resized_image :
+                    resized_image = np.array(resized_image, dtype = ctypes.c_float).flatten()  / 255 * 2 - 1
+                else :
+                    return
+            else :
+                return
+        
         nonlocal current_train_inputs, current_train_labels, current_number_of_training_inputs, current_tests_inputs, current_tests_labels, current_number_of_tests_inputs
         if isinstance(current_tests_inputs, list) :
             current_train_inputs, current_train_labels, current_number_of_training_inputs, current_tests_inputs, current_tests_labels, current_number_of_tests_inputs \
                 = lib.read_dataset(model["dataset_folders"])
-        if isinstance(model["weights"], list) :
+        if isinstance(model["weights"], list) and model["weights"] == [] :
             model["weights"] = lib.generate_multi_layer_perceptron_model(model["layers"])
+        number_of_inputs_for_this_test = 1 if on_new_data else current_number_of_tests_inputs
         predicted_dataset = lib.predict_with_multi_layer_perceptron_model(model["is_classification"],
-                                                                          model["layers"],
-                                                                          current_tests_inputs,
-                                                                          model["weights"],
-                                                                          current_number_of_tests_inputs,
-                                                                          model["layers"][0],
-                                                                          len(model["dataset_folders"]))
-        predicted_dataset = predicted_dataset.reshape(current_number_of_tests_inputs, len(model["dataset_folders"]))
+                                                                        model["layers"],
+                                                                        resized_image if on_new_data else current_tests_inputs,
+                                                                        model["weights"],
+                                                                        number_of_inputs_for_this_test,
+                                                                        model["layers"][0],
+                                                                        len(model["dataset_folders"]))
+        predicted_dataset = predicted_dataset.reshape(number_of_inputs_for_this_test, len(model["dataset_folders"]))
         print(predicted_dataset)
         
         # The following is just a temporary and filthy way to see the errors.
-        labels_to_predict = current_tests_labels.reshape(current_number_of_tests_inputs, len(model["dataset_folders"]))
-        total_error = 0
-        for i in range(current_number_of_tests_inputs) :
+        if on_new_data :
+            number_of_predicted_classes = 0
+            index_of_predicted_class = None
             for j in range(len(model["dataset_folders"])) :
-                if abs(predicted_dataset[i][j] - labels_to_predict[i][j]) >= 1 :
-                    total_error += 1
-                    break
-        print(total_error, current_number_of_tests_inputs, total_error / current_number_of_tests_inputs * 100)
+                if predicted_dataset[0][j] > 0 :
+                    index_of_predicted_class = j
+                    number_of_predicted_classes += 1
+            if number_of_predicted_classes != 1 :
+                showinfo("Test failed", f"Couldn't find out of which class is this image.")
+            else :
+                showinfo("Test succeeded", f"This image is from class #{index_of_predicted_class + 1}.")
+        else:
+            labels_to_predict = current_tests_labels.reshape(number_of_inputs_for_this_test, len(model["dataset_folders"]))
+            total_error = 0
+            for i in range(number_of_inputs_for_this_test) :
+                for j in range(len(model["dataset_folders"])) :
+                    if abs(predicted_dataset[i][j] - labels_to_predict[i][j]) >= 1 :
+                        total_error += 1
+                        break
+            showinfo("Test complete", f"Total number of error : {total_error}\
+                    \nTotal number of inputs : {number_of_inputs_for_this_test}\
+                    \nAccuracy : {round((1 - total_error / number_of_inputs_for_this_test) * 100, 1)}%")
     #N
     
     def train_model():
@@ -747,14 +775,10 @@ def fonction_principale():
     
     def predict_on_given_dataset():
         predict_with_model()
-    #V
-    
-    def predict_with_new_data():
-        pass
+    #V          
     
     
     def print_loss():
-        pass
         for number_of_training, training in enumerate(model["accuracies_and_losses"]) :
             fig, axs = plt.subplots(1, 3)
             current_training_title = f"Training {number_of_training} : "
@@ -762,6 +786,7 @@ def fonction_principale():
                 case "Linear" :
                     pass
                 case "MLP" :
+                    current_training_title += f" with layers = {model['layers']}, learning rate = {training['learning_rate']} on {training['number_of_epochs']} epochs."
                     pass
                 case "RBF" :
                     pass
@@ -881,12 +906,13 @@ def fonction_principale():
     batch_size.set("5")
     Label(model_train_frame, text = "Batch size :").grid(row = 2, column = 0, padx = 5, pady = 5)
     Entry(model_train_frame, width = 5, textvariable = batch_size, validate = "key", validatecommand = (model_train_frame.register(_check_entry_unsigned_int), '%P')).grid(row = 2, column = 1, padx = 5, pady = 5)
-    Button(model_train_frame, text = "Train model", command = train_model).grid(row = 3, column = 0, columnspan = 2, padx = 5, pady = 5)
+    start_training_button = Button(model_train_frame, text = "Train model", command = train_model)
+    start_training_button.grid(row = 3, column = 0, columnspan = 2, padx = 5, pady = 5)
     
     model_predict_frame = LabelFrame(cadre_interne, text = "Exploiting :")
     model_predict_frame.grid(row = 1, column = 3, padx = 5, pady = 5, sticky = NSEW)
     Button(model_predict_frame, text = "Predict on given dataset", command = predict_on_given_dataset).grid(row = 0, column = 0, padx = 5, pady = 5)
-    Button(model_predict_frame, text = "Predict on new data", command = predict_with_new_data).grid(row = 1, column = 0, padx = 5, pady = 5)
+    Button(model_predict_frame, text = "Predict on new data", command = lambda : predict_with_mlp(True)).grid(row = 1, column = 0, padx = 5, pady = 5)
     
     save_model_button = Button(cadre_interne, text = "Save model", command = save_model_as_file)
     save_model_button_image = PhotoImage(file = CONFIG_FOLDER + "icone_enregistrer.png")

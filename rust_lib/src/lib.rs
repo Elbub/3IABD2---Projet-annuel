@@ -391,8 +391,6 @@ extern "C" fn predict_with_multi_layer_perceptron_model(pointer_to_model: *mut f
         }
         let layers = std::slice::from_raw_parts(pointer_to_layers, number_of_layers);
         if layers[0] as usize != dimension_of_inputs {
-            println!("{:?}", layers[0]);
-            println!("{:?}", dimension_of_inputs);
             panic!("Wrong number of neurons in the first layer.");
         }
         if layers[number_of_layers - 1] as usize != number_of_classes {

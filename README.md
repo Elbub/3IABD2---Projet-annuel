@@ -7,11 +7,9 @@ Pour lancer l'UI, se positionner dans le dossier 3IABD2---Projet-annuel dans le 
 Avec l'UI il est possible de charger un modèle déjà existant qui vont se trouver dans le dossier "/save/model" 
 
 Si vous souhaitez créer votre propre modèle, vous avez le choix entre le modèle linéaire, un PMC et un RBF:
-- Pour se faire cliquez ici:
-![img.png](img.png)
+- Pour se faire cliquez sur "Edit Model"
 
-- Vous avez aussi la possibilité de sauvegarder votre modèle:
-![img_1.png](img_1.png)
+- Vous avez aussi la possibilité de sauvegarder votre modèle
 
 - Lorsqu'un entrainement est finalisé, il est possible de relancer un autre entrainement en gardant le modèle déjà entrainé. Pour cela il faut simplement relancer un "Train Model". 
 
@@ -30,6 +28,8 @@ Ils sont disponibles dans le dossier tests_interops.
 
 Afin de tester un entrainement de modèle sur un dataset, un notebook est à disposition dans "implementation_dataset/mlp_dataset_bigger_batch.ipynb"
 
+Attention à bien mettre le bon chemin dans la variable "directory_inputs" et "directory_test_inputs"
+
 ## Les datasets
 
 Nous avons 2 datasets différents:
@@ -37,9 +37,8 @@ Nous avons 2 datasets différents:
 - le second permet de classifier le monument Angkor (Cambodge), le chateau bodiam (Angleterre) et le parthénon (Grèce)
 
 Ces datasets sont disponibles sous deux formes : 
-- dans leurs formes originales dans le dossier "database/clean_dataset" 
-- sous forme resized dans le dossier "database/", plusieurs dossiers sont à disposition en fonction de la taille du resize et du dataset utilisé (monuments spécifiques ou monuments antique au sens large)
-
+- dans leurs formes originales dans le dossier "database/original_size_dataset" 
+- sous forme resized dans le dossier "database/..", plusieurs dossiers sont à disposition en fonction de la taille du resize
 
 ## Script Resizing d'images
 

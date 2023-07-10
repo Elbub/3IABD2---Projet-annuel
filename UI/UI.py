@@ -786,7 +786,7 @@ def fonction_principale():
                 case "Linear" :
                     pass
                 case "MLP" :
-                    current_training_title += f" with layers = {model['layers']}, learning rate = {training['learning_rate']} on {training['number_of_epochs']} epochs."
+                    current_training_title += f" with layers = {model['layers']}, on {training['number_of_epochs']} epochs."
                     pass
                 case "RBF" :
                     pass

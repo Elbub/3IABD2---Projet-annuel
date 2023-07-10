@@ -136,7 +136,6 @@ def read_dataset(dataset_folders: Union[str, list[str], list[list[str]]]):
 
 
 def generate_multi_layer_perceptron_model(layers_list: list[int]):
-    print("debug")
     layers = np.array(layers_list, dtype=ctypes.c_float)
     layers_as_c_float_array = (ctypes.c_float * len(layers))(*layers)
     number_of_layers = len(layers_as_c_float_array)
@@ -249,7 +248,7 @@ def train_multi_layer_perceptron_model(is_classification: bool,
     dimensions_of_inputs = ctypes.c_int32(dimensions_of_inputs)
     number_of_classes = ctypes.c_int32(number_of_classes)
     print("Training...")
-    print(time.time() - timer)
+    # print(time.time() - timer)
     pointer_to_trained_model = rust_machine_learning_library.train_multi_layer_perceptron_model(
                                                                                                 pointer_to_model,
                                                                                                 pointer_to_layers,
@@ -274,7 +273,7 @@ def train_multi_layer_perceptron_model(is_classification: bool,
     # rust_machine_learning_library.delete_float_array(pointer_to_training_labels, number_of_training_inputs)
     # rust_machine_learning_library.delete_float_array(pointer_to_tests_labels, number_of_tests_inputs)
     print("The model has been trained.")
-    print(time.time() - timer)
+    # print(time.time() - timer)
     trained_model = np.ctypeslib.as_array(pointer_to_trained_model, (number_of_weights,))
     return trained_model
     

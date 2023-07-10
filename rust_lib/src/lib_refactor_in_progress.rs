@@ -5,6 +5,8 @@ use std::fs::File;
 use std::io::{self, Write};
 use serde::{Deserialize, Serialize};
 use fast_math::exp;
+use rand::Rng;
+
 
 #[derive(Serialize, Deserialize)]
 struct AccuraciesAndLosses {
@@ -958,7 +960,72 @@ fn matrix_pseudo_inverse(input_matrix: DMatrix<f32>, nombre_colonnes_x: usize) -
 //     }
 // }
 
+fn k_means(
+    inputs_train: Vec<f32>,
+    number_of_clusters: usize,
+    dimension_of_inputs: usize,
+    number_of_points: usize,
+) -> Vec<Vec<f32>> {
+    // initialiser des centres randoms
+    let mut output: Vec<Vec<f32>> = Vec::with_capacity(number_of_clusters);
+    for i in 0..number_of_clusters{
+        let mut mu_k : Vec<f32> = Vec::with_capacity(dimension_of_inputs);
+        for j in 0..dimension_of_inputs{
+            mu_k.push(rand::thread_rng().gen_range(-1f32..1f32));
+        }
+        output.push(mu_k);
+    }
+    // création ensemble Sk
+    // Pour chaque points on vérifie à quel centre il appartient
+    // X -> pour tout point -> on vérifie s'il est plus proche d'un centre ou d'un autre
+    let mut old_output : Vec<Vec<f32>> = Vec::with_capacity(number_of_clusters);
+    let mut count = 0;
+    while(old_output != output && count <= 100) {
+        let mut output_Sk: Vec<Vec<Vec<f32>>> = Vec::with_capacity(number_of_clusters);
 
+        for k in 0..number_of_clusters {
+            let mut S_k: Vec<Vec<f32>> = Vec::new();
+            for n in 0..number_of_points {
+                let mut distance_k: f32 = 0.0;
+                for j in 0..dimension_of_inputs {
+                    distance_k += inputs_train[n * dimension_of_inputs + j] - output[k][j];
+                }
+                for l in 0..number_of_clusters {
+                    if l != k {
+                        let mut distance_l: f32 = 0.0;
+                        for j in 0..dimension_of_inputs {
+                            distance_l += inputs_train[n * dimension_of_inputs + j] - output[l][j];
+                        }
+                        if distance_k >= distance_l {
+                            let mut vec_to_push = Vec::with_capacity(dimension_of_inputs);
+                            for i in 0..dimension_of_inputs {
+                                vec_to_push.push(inputs_train[n * dimension_of_inputs + i]);
+                            }
+                            S_k.push(vec_to_push);
+                        }
+                    }
+                }
+            }
+            output_Sk.push(S_k);
+        }
+
+        //update mu_k
+        old_output = output;
+        output = Vec::with_capacity(number_of_clusters);
+        for k in 0..number_of_clusters {
+            let mut mu_k: Vec<f32> = vec![0.0; dimension_of_inputs];
+            for n in output_Sk[k].clone() {
+                for i in 0..dimension_of_inputs {
+                    mu_k[i] += n[i] / output_Sk[k].len() as f32;
+                }
+            }
+            output.push(mu_k);
+        }
+        count += 1;
+    }
+    output
+
+}
 
 
 #[no_mangle]

@@ -182,8 +182,8 @@ extern "C" fn x_transpose_times_x(pointer_to_x: *mut f32, longueur_x: usize, col
             }
         }
 
-        let x_transpose:DMatrix<f32> = x_mat.clone().transpose();
-        let x_t_mult_x = x_transpose.clone() * x_mat.clone();
+        let x_transpose:DMatrix<f32> = x_mat.transpose();
+        let x_t_mult_x = x_transpose * x_mat;
 
         let mut weights: Vec<f32> = Vec::with_capacity(colonnes_x * colonnes_x);
 
@@ -468,12 +468,12 @@ extern "C" fn predict_with_multi_layer_perceptron_model(pointer_to_model: *mut f
 }
 
 
-fn multi_layer_perceptron_predict_test( weights:  Vec<Vec<Vec<f32>>>, // c'est le weights entrainé
+fn multi_layer_perceptron_predict_test(weights: &Vec<Vec<Vec<f32>>>, // c'est le weights entrainé
                                               inputs: &[f32], // les données qu'on veut prédire
                                               number_of_inputs: usize, // le nombre de données dans le pointeur d'au dessus
                                               dimension_of_inputs: usize, // dimension des inputs
                                               number_of_classes_to_predict: usize,
-                                              layers: &[f32], // forme du perceptron, ex: (2, 2, 1)
+                                       layers: &[f32], // forme du perceptron, ex: (2, 2, 1)
                                               number_of_layers: usize, // nombre de couches
                                               is_classification: bool) -> Vec<f32> {
 
@@ -640,7 +640,7 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
                     for j in 1..size_of_x_l {
                         let mut x_l_i = 0f32;
                         for i in 0..layers[l-1] as usize + 1{
-                            x_l_i += weights[l][i][j-1] * x[l-1][i];
+                            x_l_i += &weights[l][i][j-1] * x[l-1][i];
                         }
                         if !is_classification && l==number_of_layers-1 {
                             x_l.push(x_l_i);
@@ -677,7 +677,7 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
                     for i in 0..layers[l - 1] as usize + 1{
                         let mut weighted_sum_of_errors = 0f32;
                         for j in 1..layers[l] as usize + 1{
-                            weighted_sum_of_errors += weights[l][i][j-1] * delta[l][j];
+                            weighted_sum_of_errors += &weights[l][i][j-1] * delta[l][j];
                         }
                         delta[l-1][i] = (1f32 - x[l - 1][i] * x[l - 1][i]) * weighted_sum_of_errors;
                     }
@@ -702,8 +702,8 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
                 accuracies_on_training_dataset.push(training_accuracy);
                 losses_on_training_dataset.push(training_loss);
 
-                let precicted_labels = multi_layer_perceptron_predict_test(weights.clone(),
-                                                                        tests_inputs.clone(),
+                let precicted_labels = multi_layer_perceptron_predict_test(&weights,
+                                                                        tests_inputs,
                                                                         number_of_tests_inputs,
                                                                         dimension_of_inputs,
                                                                         number_of_classes,
@@ -717,7 +717,7 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
                 for i in (0..(number_of_tests_inputs * number_of_classes)).step_by(number_of_classes) {
                     let mut is_mispredicted = false;
                     for j in 0..number_of_classes {
-                        let delta_test = tests_labels[i+j] - precicted_labels.clone()[i+j];
+                        let delta_test = tests_labels[i+j] - precicted_labels[i+j];
                         if !is_mispredicted && (delta_test >= 1. || delta_test <= -1.) {
                             number_of_mispredicted_tests_outputs += 1;
                             is_mispredicted = true;
@@ -766,9 +766,9 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
 
 
 fn matrix_pseudo_inverse(input_matrix: DMatrix<f32>, nombre_colonnes_x: usize) -> DMatrix<f32>{
-    let x_transpose = input_matrix.clone().transpose();
-    let mut x_t_mult_x = x_transpose.clone() * input_matrix.clone();
-    let mut det = x_t_mult_x.clone().determinant();
+    let x_transpose = input_matrix.transpose();
+    let mut x_t_mult_x = &x_transpose * input_matrix;
+    let mut det = x_t_mult_x.determinant();
 
     while det >= -0.00005 && det <= 0.00005{
         let mut rng = rand::thread_rng();
@@ -777,13 +777,13 @@ fn matrix_pseudo_inverse(input_matrix: DMatrix<f32>, nombre_colonnes_x: usize) -
                 x_t_mult_x[(i,j)] = x_t_mult_x[(i,j)] + rng.gen_range(-0.005..0.005);
             }
         }
-        det = x_t_mult_x.clone().determinant();
+        det = x_t_mult_x.determinant();
     }
 
 
     let inv_x_t_x = x_t_mult_x.try_inverse();
     let inv_times_x_t = match inv_x_t_x {
-        Some(inv) => inv * x_transpose.clone(),
+        Some(inv) => inv * x_transpose,
         None => panic!("Non inversible"),
     };
     inv_times_x_t
@@ -849,11 +849,11 @@ fn k_means(
         }
 
         //update mu_k
-        old_vec_of_mu_k = vec_of_mu_k.clone();
+        old_vec_of_mu_k = vec_of_mu_k;
         vec_of_mu_k = Vec::with_capacity(number_of_clusters);
         for k in 0..number_of_clusters {
             let mut mu_k: Vec<f32> = vec![0.0; dimension_of_inputs];
-            for n in vec_of_Sk[k].clone() {
+            for n in &vec_of_Sk[k] {
                 for i in 0..dimension_of_inputs {
                     mu_k[i] += n[i] / vec_of_Sk[k].len() as f32;
                 }
@@ -882,7 +882,7 @@ extern "C" fn radial_basis_function_model(      pointer_to_inputs_train : *mut f
 ) -> *mut f32 {
 
     unsafe{
-        let inputs_train = std::slice::from_raw_parts(pointer_to_inputs_train.clone(),
+        let inputs_train = std::slice::from_raw_parts(pointer_to_inputs_train,
                                                       number_of_training_inputs * dimension_of_inputs);
         let labels = std::slice::from_raw_parts(pointer_to_labels,
                                                 number_of_training_inputs * number_of_classes);
@@ -903,7 +903,7 @@ extern "C" fn radial_basis_function_model(      pointer_to_inputs_train : *mut f
                     phi[(i, j + 1)] = exp(-gamma * squarred_distance);
                 }
             }
-            let phi_pseudo_inverse:DMatrix<f32> = matrix_pseudo_inverse(phi.clone(),number_of_clusters+1);
+            let phi_pseudo_inverse:DMatrix<f32> = matrix_pseudo_inverse(phi,number_of_clusters+1);
             let mut labels_as_matrix:DMatrix<f32> = DMatrix::zeros(number_of_training_inputs, number_of_classes);
             for i in 0..number_of_training_inputs {
                 for j in 0..number_of_classes{
@@ -911,7 +911,7 @@ extern "C" fn radial_basis_function_model(      pointer_to_inputs_train : *mut f
                 }
             }
 
-            let weights_as_matrix:DMatrix<f32> = phi_pseudo_inverse.clone() * labels_as_matrix;
+            let weights_as_matrix:DMatrix<f32> = phi_pseudo_inverse * labels_as_matrix;
 
             let mut outputs:Vec<Vec<f32>> = Vec::with_capacity(number_of_inputs_to_predict);
             for i in 0..number_of_inputs_to_predict {
@@ -943,7 +943,7 @@ extern "C" fn radial_basis_function_model(      pointer_to_inputs_train : *mut f
             arr_slice.as_mut_ptr()
 
         } else {
-            let mut vec_of_mu_k = k_means(inputs_train.clone(), number_of_clusters, dimension_of_inputs, number_of_training_inputs);
+            let mut vec_of_mu_k = k_means(inputs_train, number_of_clusters, dimension_of_inputs, number_of_training_inputs);
             for i in 0..number_of_training_inputs {
                 phi[(i, 0)] = 1f32;
                 for k in 0..number_of_clusters {
@@ -954,7 +954,7 @@ extern "C" fn radial_basis_function_model(      pointer_to_inputs_train : *mut f
                     phi[(i,k+1)] = exp(-gamma * squarred_distance);
                 }
             }
-            let phi_pseudo_inverse:DMatrix<f32> = matrix_pseudo_inverse(phi.clone(),number_of_clusters+1);
+            let phi_pseudo_inverse:DMatrix<f32> = matrix_pseudo_inverse(phi,number_of_clusters+1);
             let mut labels_as_matrix:DMatrix<f32> = DMatrix::zeros(number_of_training_inputs, number_of_classes);
             for i in 0..number_of_training_inputs {
                 for j in 0..number_of_classes{
@@ -962,7 +962,7 @@ extern "C" fn radial_basis_function_model(      pointer_to_inputs_train : *mut f
                 }
             }
 
-            let weights_as_matrix:DMatrix<f32> = phi_pseudo_inverse.clone() * labels_as_matrix;
+            let weights_as_matrix:DMatrix<f32> = phi_pseudo_inverse * labels_as_matrix;
 
             let mut outputs:Vec<Vec<f32>> = Vec::with_capacity(number_of_inputs_to_predict);
             for i in 0..number_of_inputs_to_predict {
@@ -980,7 +980,7 @@ extern "C" fn radial_basis_function_model(      pointer_to_inputs_train : *mut f
                     if is_classification {
                         output.push(weighted_sum.tanh());
                     } else {
-                        output.push(weighted_sum)
+                        output.push(weighted_sum);
                     }
                 }
                 outputs.push(output);

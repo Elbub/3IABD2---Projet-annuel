@@ -4,7 +4,8 @@ Annual project for our bachelor in AI &amp; Big Data
 ## Lancement UI
 Pour lancer l'UI, se positionner dans le dossier 3IABD2---Projet-annuel dans le terminal puis lancer la commande "python .\UI\UI.py" afin de lancer le script UI.py
 
-Avec l'UI il est possible de charger un modèle déjà existant qui vont se trouver dans le dossier "/save/model" 
+Avec l'UI il est possible de charger un modèle déjà existant qui vont se trouver dans le dossier "/save/model".
+En cas d'erreur, mettez à jour les chemins vers les datasets
 
 Si vous souhaitez créer votre propre modèle, vous avez le choix entre le modèle linéaire, un PMC et un RBF:
 - Pour se faire cliquez sur "Edit Model"

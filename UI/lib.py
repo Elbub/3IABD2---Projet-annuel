@@ -20,6 +20,39 @@ rust_machine_learning_library.delete_float_array.argtypes = [
 ]
 rust_machine_learning_library.delete_float_array.restype = None
 
+rust_machine_learning_library.generate_linear_model.argtypes = [ctypes.c_int32, ctypes.c_int32]
+rust_machine_learning_library.generate_linear_model.restype = ctypes.POINTER(ctypes.c_float)
+
+rust_machine_learning_library.train_linear_model_classification.argtypes = [
+    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(ctypes.c_float),
+    ctypes.c_int32,
+    ctypes.c_int32,
+    ctypes.POINTER(ctypes.c_float),
+    ctypes.c_int32,
+    ctypes.c_float,
+    ctypes.c_int32,
+]
+rust_machine_learning_library.train_linear_model_classification.restype = ctypes.POINTER(ctypes.c_float)
+
+rust_machine_learning_library.train_linear_model_regression.argtypes = [
+    ctypes.POINTER(ctypes.c_float),
+    ctypes.c_int32,
+    ctypes.c_int32,
+    ctypes.POINTER(ctypes.c_float),
+    ctypes.c_int32,
+]
+rust_machine_learning_library.train_linear_model_regression.restype = ctypes.POINTER(ctypes.c_float)
+
+rust_machine_learning_library.predict_with_linear_model.argtypes = [
+    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(ctypes.c_float),
+    ctypes.c_int32,
+    ctypes.c_int32,
+    ctypes.c_bool,
+]
+rust_machine_learning_library.predict_with_linear_model.restype = ctypes.POINTER(ctypes.c_float)
+
 rust_machine_learning_library.generate_multi_layer_perceptron_model.argtypes = [ctypes.POINTER(ctypes.c_float), ctypes.c_int32]
 rust_machine_learning_library.generate_multi_layer_perceptron_model.restype = ctypes.POINTER(ctypes.c_float)
 

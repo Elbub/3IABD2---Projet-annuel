@@ -775,8 +775,7 @@ def fonction_principale():
     
     def predict_on_given_dataset():
         predict_with_model()
-    #V          
-    
+    #V
     
     def print_loss():
         for number_of_training, training in enumerate(model["accuracies_and_losses"]) :

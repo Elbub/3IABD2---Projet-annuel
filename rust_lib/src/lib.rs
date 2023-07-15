@@ -35,11 +35,11 @@ extern "C" fn delete_float_array(arr: *mut f32 , arr_len: i32) {
 }
 
 #[no_mangle]
-extern "C" fn generate_linear_model(dimension: usize, number_of_classes: usize) -> *mut f32 {
+extern "C" fn generate_linear_model(dimensions_of_inputs: usize, number_of_classes: usize) -> *mut f32 {
     let mut rng = rand::thread_rng();
-    let number_of_parameters: usize = dimension;
-    let mut weights: Vec<f32> = Vec::with_capacity((dimension + 1) * number_of_classes);   // weights : contient les poids associés aux Xi
-    for _ in 0..dimension + 1 {
+    let number_of_parameters: usize = dimensions_of_inputs;
+    let mut weights: Vec<f32> = Vec::with_capacity((dimensions_of_inputs + 1) * number_of_classes);   // weights : contient les poids associés aux Xi
+    for _ in 0..dimensions_of_inputs + 1 {
         for _ in 0..number_of_classes {
             weights.push(rng.gen_range(-1f32..1f32)); // initialisation aléatoire entre -1 et 1
         }
@@ -47,6 +47,7 @@ extern "C" fn generate_linear_model(dimension: usize, number_of_classes: usize) 
     let arr_slice = weights.leak();
     arr_slice.as_mut_ptr()
 }
+
 
 #[no_mangle]
 extern "C" fn train_linear_model_classification(pointer_to_model: *mut f32,
@@ -56,7 +57,8 @@ extern "C" fn train_linear_model_classification(pointer_to_model: *mut f32,
                                                 pointer_to_labels : *mut f32,
                                                 number_of_classes: usize,
                                                 learning_rate: f32,
-                                                number_of_epochs: usize) -> *mut f32 {
+                                                number_of_epochs: usize
+) -> *mut f32 {
     unsafe {
         let inputs = std::slice::from_raw_parts(pointer_to_inputs, number_of_inputs * dimensions_of_inputs);
         let labels = std::slice::from_raw_parts(pointer_to_labels, number_of_inputs * number_of_classes);
@@ -95,13 +97,15 @@ extern "C" fn train_linear_model_classification(pointer_to_model: *mut f32,
         weights.leak().as_mut_ptr()
     }
 }
+
  
 #[no_mangle]
 extern "C" fn train_linear_model_regression(pointer_to_inputs: *mut f32,
                                             number_of_inputs: usize,
                                             dimensions_of_inputs: usize,
                                             pointer_to_outputs: *mut f32,
-                                            number_of_classes: usize) -> *mut f32 {
+                                            number_of_classes: usize
+) -> *mut f32 {
     unsafe {
         use nalgebra::*;
 
@@ -141,12 +145,14 @@ extern "C" fn train_linear_model_regression(pointer_to_inputs: *mut f32,
     }
 }
 
+
 #[no_mangle]
 extern "C" fn predict_with_linear_model(pointer_to_trained_model: *mut f32,
                                         pointer_to_inputs: *const f32,
                                         number_of_inputs: usize,
                                         dimensions_of_inputs: usize,
-                                        is_classification: bool) -> *mut f32{
+                                        is_classification: bool
+) -> *mut f32{
     unsafe{
         let inputs = std::slice::from_raw_parts(pointer_to_inputs, number_of_inputs * dimensions_of_inputs);
         let trained_model = std::slice::from_raw_parts(pointer_to_trained_model, (dimensions_of_inputs + 1) * number_of_classes);
@@ -173,6 +179,7 @@ extern "C" fn predict_with_linear_model(pointer_to_trained_model: *mut f32,
     }
 }
 
+
 #[no_mangle]
 extern "C" fn get_number_of_weights(pointer_to_layers: *mut f32, number_of_layers: usize) -> usize {
     unsafe {
@@ -185,6 +192,7 @@ extern "C" fn get_number_of_weights(pointer_to_layers: *mut f32, number_of_layer
         total_number_of_weights as usize
     }
 }
+
 
 #[no_mangle]
 extern "C" fn generate_multi_layer_perceptron_model(pointer_to_layers: *mut f32, number_of_layers: usize) -> *mut f32 {
@@ -207,6 +215,7 @@ extern "C" fn generate_multi_layer_perceptron_model(pointer_to_layers: *mut f32,
         arr_slice.as_mut_ptr()
     }
 }
+
 
 #[no_mangle]
 extern "C" fn train_multi_layer_perceptron_model_old(pointer_to_model: *mut f32,
@@ -507,6 +516,7 @@ fn save_accuracy_and_losses_as_file(accuracies_and_losses: AccuraciesAndLosses) 
     Ok(())
 }
 
+
 #[no_mangle]
 extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
                                                  pointer_to_layers: *mut f32,
@@ -667,7 +677,7 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
             }
 
             if check_accuracy_and_loss {
-                let training_accuracy:f32 = number_of_mispredicted_training_outputs as f32 / number_of_training_inputs as f32;
+                let training_accuracy:f32 = 1 - number_of_mispredicted_training_outputs as f32 / number_of_training_inputs as f32;
                 let training_loss:f32 = training_squarred_errors_sum / number_of_training_inputs as f32;
                 println!("Number of training inputs mispredicted : {:?}", number_of_mispredicted_training_outputs);
                 println!("Training inputs accuracy : {:?}", training_accuracy);
@@ -699,7 +709,7 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
                         tests_squarred_errors_sum += delta_test * delta_test;
                     }
                 }
-                let tests_accuracy:f32 = number_of_mispredicted_tests_outputs as f32 / number_of_tests_inputs as f32;
+                let tests_accuracy:f32 = 1 - number_of_mispredicted_tests_outputs as f32 / number_of_tests_inputs as f32;
                 let tests_loss:f32 = tests_squarred_errors_sum / number_of_tests_inputs as f32;
                 println!("Number of tests inputs mispredicted : {:?}", number_of_mispredicted_tests_outputs);
                 println!("Tests inputs accuracy: {:?}", tests_accuracy);
@@ -738,7 +748,6 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
 }
 
 
-
 fn matrix_pseudo_inverse(input_matrix: DMatrix<f32>, dimensions_of_inputs: usize) -> DMatrix<f32>{
     let x_transpose = input_matrix.transpose();
     let mut x_t_mult_x = &x_transpose * input_matrix;
@@ -762,6 +771,7 @@ fn matrix_pseudo_inverse(input_matrix: DMatrix<f32>, dimensions_of_inputs: usize
     };
     inv_times_x_t
 }
+
 
 fn k_means(
     inputs_train: &[f32],

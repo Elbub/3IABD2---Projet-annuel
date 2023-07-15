@@ -103,7 +103,7 @@ def read_only_train_dataset(dataset_folders: Union[str, list[str]]):
         try :
             dataset_folder = os.listdir(dataset_folders[dataset_class])
             for filename in dataset_folder:
-                if 'image' in filename:
+                if ".jpg" in filename or ".jpeg" in filename or ".png" in filename:
                     with Image.open(os.path.join(dataset_folders[dataset_class], filename)) as filename :
                         # print(filename)
                         inputs.append(np.asarray(filename))
@@ -129,7 +129,7 @@ def read_both_datasets(dataset_folders: list[list[str]]):
         try :
             dataset_folder = os.listdir(dataset_folders[dataset_class][0])
             for filename in dataset_folder:
-                if 'image' in filename:
+                if ".jpg" in filename or ".jpeg" in filename or ".png" in filename:
                     with Image.open(os.path.join(dataset_folders[dataset_class][0], filename)) as filename :
                         # print(filename)
                         train_inputs.append(np.asarray(filename))
@@ -141,7 +141,7 @@ def read_both_datasets(dataset_folders: list[list[str]]):
         try :
             dataset_folder = os.listdir(dataset_folders[dataset_class][1])
             for filename in dataset_folder:
-                if 'image' in filename:
+                if ".jpg" in filename or ".jpeg" in filename or ".png" in filename:
                     with Image.open(os.path.join(dataset_folders[dataset_class][1], filename)) as filename :
                         # print(filename)
                         tests_inputs.append(np.asarray(filename))
@@ -168,14 +168,189 @@ def read_dataset(dataset_folders: Union[str, list[str], list[list[str]]]):
     return read_both_datasets(dataset_folders)
 
 
+def generate_linear_model(dimensions_of_inputs: int, number_of_classes: int):
+    dimensions_of_inputs = ctypes.c_int32(dimensions_of_inputs)
+    number_of_classes = ctypes.c_int32(number_of_classes)
+    pointer_to_untrained_model = rust_machine_learning_library.generate_linear_model(dimensions_of_inputs, number_of_classes)
+    return np.ctypeslib.as_array(pointer_to_untrained_model, ((dimensions_of_inputs + 1) * number_of_classes,))
+
+
+def train_linear_model(is_classification: bool,
+                       training_inputs: Union[list[float], np.ndarray],
+                       tests_inputs: Union[list[float], np.ndarray] = [],
+                       training_labels: Union[list[float], np.ndarray] = [],
+                       tests_labels: Union[list[float], np.ndarray] = [],
+                       model: Union[list[float], np.ndarray] = [],
+                       learning_rate: float = 0.01,
+                       number_of_epochs: float = 100,
+                       number_of_training_inputs: int = 0,
+                       number_of_tests_inputs: int = 0,
+                       dimensions_of_inputs: int = 0,
+                       number_of_classes: int = 0,
+                       batch_size: int = 1):
+    
+    if not isinstance(is_classification, bool):
+        raise TypeError
+    
+    if not isinstance(number_of_training_inputs, int):
+        raise TypeError
+    if number_of_training_inputs < 1 :
+        raise ValueError
+    # if not isinstance(number_of_tests_inputs, int):
+    #     raise TypeError
+    # if number_of_tests_inputs < 1 :
+    #     raise ValueError
+    
+    if not isinstance(dimensions_of_inputs, int):
+        raise TypeError
+    if dimensions_of_inputs < 1 :
+        raise ValueError
+    
+    if not isinstance(number_of_classes, int):
+        raise TypeError
+    if number_of_classes < 1 :
+        raise ValueError
+    
+    if not isinstance(training_inputs, np.ndarray):
+        raise TypeError
+    if number_of_training_inputs * dimensions_of_inputs != len(training_inputs):
+        raise ValueError
+    training_inputs_as_c_float_array = (ctypes.c_float * (number_of_training_inputs * dimensions_of_inputs))(*training_inputs)
+    pointer_to_training_inputs = ctypes.cast(training_inputs_as_c_float_array, POINTER_TO_FLOAT_ARRAY_TYPE)
+    # if not isinstance(tests_inputs, np.ndarray):
+    #     raise TypeError
+    # if number_of_tests_inputs * dimensions_of_inputs != len(tests_inputs):
+    #     raise ValueError
+    # tests_inputs_as_c_float_array = (ctypes.c_float * (number_of_tests_inputs * dimensions_of_inputs))(*tests_inputs)
+    # pointer_to_tests_inputs = ctypes.cast(tests_inputs_as_c_float_array, POINTER_TO_FLOAT_ARRAY_TYPE)
+    
+    if not isinstance(training_labels, np.ndarray):
+        raise TypeError
+    if number_of_training_inputs * number_of_classes != len(training_labels):
+        raise ValueError
+    training_labels_as_c_float_array = (ctypes.c_float * (number_of_training_inputs * number_of_classes))(*training_labels)
+    pointer_to_training_labels = ctypes.cast(training_labels_as_c_float_array, POINTER_TO_FLOAT_ARRAY_TYPE)
+    # if not isinstance(tests_labels, np.ndarray):
+    #     raise TypeError
+    # if number_of_tests_inputs * number_of_classes != len(tests_labels):
+    #     raise ValueError
+    # tests_labels_as_c_float_array = (ctypes.c_float * (number_of_tests_inputs * number_of_classes))(*tests_labels)
+    # pointer_to_tests_labels = ctypes.cast(tests_labels_as_c_float_array, POINTER_TO_FLOAT_ARRAY_TYPE)
+    
+    if isinstance(model, list):
+        model = np.array(model, dtype=ctypes.c_float)
+    if not isinstance(model, np.ndarray):
+        raise TypeError
+    number_of_weights = (dimensions_of_inputs + 1) * number_of_classes
+    model_as_c_float_array = (ctypes.c_float * number_of_weights)(*model)
+    pointer_to_model = ctypes.cast(model_as_c_float_array, POINTER_TO_FLOAT_ARRAY_TYPE)
+    
+    if is_classification :
+        if isinstance(learning_rate, float):
+            learning_rate = ctypes.c_float(learning_rate)
+        if not isinstance(learning_rate, ctypes.c_float):
+            raise TypeError
+        
+        if isinstance(number_of_epochs, int):
+            number_of_epochs = ctypes.c_int32(number_of_epochs)
+        if not isinstance(number_of_epochs, ctypes.c_int32):
+            raise TypeError
+
+    number_of_training_inputs = ctypes.c_int32(number_of_training_inputs)
+    # number_of_tests_inputs = ctypes.c_int32(number_of_tests_inputs)
+    dimensions_of_inputs = ctypes.c_int32(dimensions_of_inputs)
+    number_of_classes = ctypes.c_int32(number_of_classes)
+    print("Training...")
+    if is_classification :
+        pointer_to_trained_model = rust_machine_learning_library.train_linear_model_classification(
+                                                                                                   pointer_to_model,
+                                                                                                   pointer_to_training_inputs,
+                                                                                                   number_of_training_inputs,
+                                                                                                   # pointer_to_tests_inputs,
+                                                                                                   # number_of_tests_inputs,
+                                                                                                   dimensions_of_inputs,
+                                                                                                   pointer_to_training_labels,
+                                                                                                   # pointer_to_tests_labels,
+                                                                                                   number_of_classes,
+                                                                                                   learning_rate,
+                                                                                                   number_of_epochs,
+                                                                                                   # batch_size
+                                                                                                  )
+    else :
+        pointer_to_trained_model = rust_machine_learning_library.train_linear_model_regression(
+                                                                                               pointer_to_training_inputs,
+                                                                                               number_of_training_inputs,
+                                                                                               dimensions_of_inputs,
+                                                                                               pointer_to_training_labels,
+                                                                                               number_of_classes,
+                                                                                              )
+    print("The model has been trained.")
+    trained_model = np.ctypeslib.as_array(pointer_to_trained_model, (number_of_weights,))
+    return trained_model
+    
+
+def predict_linear_model(is_classification: bool,
+                         inputs: Union[list[float], np.ndarray],
+                         model: Union[list[float], np.ndarray],
+                         number_of_inputs: int = 0,
+                         dimensions_of_inputs: int = 0,
+                         number_of_classes: int = 0):
+
+    if not isinstance(is_classification, bool):
+        raise TypeError
+    
+    if not isinstance(number_of_inputs, int):
+        raise TypeError
+    if number_of_inputs < 1 :
+        raise ValueError
+    
+    if not isinstance(dimensions_of_inputs, int):
+        raise TypeError
+    if dimensions_of_inputs < 1 :
+        raise ValueError
+    
+    if not isinstance(number_of_classes, int):
+        raise TypeError
+    if number_of_classes < 1 :
+        raise ValueError
+
+    if not isinstance(inputs, np.ndarray):
+        raise TypeError
+    inputs_as_c_float_array = (ctypes.c_float * (number_of_inputs * dimensions_of_inputs))(*inputs)
+    pointer_to_inputs = ctypes.cast(inputs_as_c_float_array, POINTER_TO_FLOAT_ARRAY_TYPE)
+    
+    if isinstance(model, list) :
+        model = np.array(model)
+    if not isinstance(model, np.ndarray):
+        raise TypeError
+    number_of_weights = len(model)
+    if number_of_weights != (dimensions_of_inputs + 1) * number_of_classes :
+        raise ValueError
+    model_as_c_float_array = (ctypes.c_float * number_of_weights)(*model)
+    pointer_to_model = ctypes.cast(model_as_c_float_array, POINTER_TO_FLOAT_ARRAY_TYPE)
+    pointer_to_predicted_classes = rust_machine_learning_library.predict_with_linear_model(
+                                                                                           pointer_to_model,
+                                                                                           pointer_to_inputs,
+                                                                                           number_of_inputs,
+                                                                                           dimensions_of_inputs,
+                                                                                           number_of_classes,
+                                                                                           is_classification
+                                                                                          )
+    # rust_machine_learning_library.delete_float_array(pointer_to_model, number_of_weights)
+    # rust_machine_learning_library.delete_float_array(pointer_to_inputs, number_of_inputs)
+
+    predicted_classes = np.ctypeslib.as_array(pointer_to_predicted_classes, (number_of_inputs * number_of_classes, ))
+    return predicted_classes
+
+
 def generate_multi_layer_perceptron_model(layers_list: list[int]):
     layers = np.array(layers_list, dtype=ctypes.c_float)
     layers_as_c_float_array = (ctypes.c_float * len(layers))(*layers)
-    number_of_layers = len(layers_as_c_float_array)
     pointer_to_layers = ctypes.cast(layers_as_c_float_array, POINTER_TO_FLOAT_ARRAY_TYPE)
+    number_of_layers = len(layers_as_c_float_array)
     pointer_to_untrained_mlp = rust_machine_learning_library.generate_multi_layer_perceptron_model(pointer_to_layers, number_of_layers)
-    untrained_mlp = np.ctypeslib.as_array(pointer_to_untrained_mlp, (get_number_of_weights(layers_list),))
-    return untrained_mlp
+    untrained_model = np.ctypeslib.as_array(pointer_to_untrained_mlp, (get_number_of_weights(layers_list),))
+    return untrained_model
 
 
 def train_multi_layer_perceptron_model(is_classification: bool,

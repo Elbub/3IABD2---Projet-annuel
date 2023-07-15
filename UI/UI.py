@@ -23,6 +23,7 @@ import ctypes
 ### Divers
 from typing import *
 import re
+from math import floor
 
 ### Debug
 import sys
@@ -780,7 +781,7 @@ def fonction_principale():
     def print_loss():
         for number_of_training, training in enumerate(model["accuracies_and_losses"]) :
             fig, axs = plt.subplots(1, 3)
-            current_training_title = f"Training {number_of_training} : "
+            current_training_title = f"Training {number_of_training + 1} : "
             match model["model_type"] :
                 case "Linear" :
                     pass
@@ -794,18 +795,18 @@ def fonction_principale():
                 case _ :
                     pass
             fig.suptitle(current_training_title)
-            axs[0].plot(range(0, training["number_of_epochs"], training["batch_size"]), training["numbers_of_errors_on_training_dataset"], label = "Training")
-            axs[0].plot(range(0, training["number_of_epochs"], training["batch_size"]), training["numbers_of_errors_on_tests_dataset"], label = "Tests")
+            axs[0].plot(range(0, floor(training["number_of_epochs"] / training["batch_size"]) * training["batch_size"], training["batch_size"]), training["numbers_of_errors_on_training_dataset"], label = "Training")
+            axs[0].plot(range(0, floor(training["number_of_epochs"] / training["batch_size"]) * training["batch_size"], training["batch_size"]), training["numbers_of_errors_on_tests_dataset"], label = "Tests")
             axs[0].set_title("Number of errors")
             axs[0].set(xlabel = "Epoch", ylabel = "Number of errors")
             axs[0].legend()
-            axs[1].plot(range(0, training["number_of_epochs"], training["batch_size"]), [element * 100 for element in training["training_accuracies"]], label = "Training")
-            axs[1].plot(range(0, training["number_of_epochs"], training["batch_size"]), [element * 100 for element in training["tests_accuracies"]], label = "Tests")
+            axs[1].plot(range(0, floor(training["number_of_epochs"] / training["batch_size"]) * training["batch_size"], training["batch_size"]), [element * 100 for element in training["training_accuracies"]], label = "Training")
+            axs[1].plot(range(0, floor(training["number_of_epochs"] / training["batch_size"]) * training["batch_size"], training["batch_size"]), [element * 100 for element in training["tests_accuracies"]], label = "Tests")
             axs[1].set_title("Accuracy")
             axs[1].set(xlabel = "Epoch", ylabel = "Accuracy")
             axs[1].legend()
-            axs[2].plot(range(0, training["number_of_epochs"], training["batch_size"]), training["training_losses"], label = "Training")
-            axs[2].plot(range(0, training["number_of_epochs"], training["batch_size"]), training["tests_losses"], label = "Tests")
+            axs[2].plot(range(0, floor(training["number_of_epochs"] / training["batch_size"]) * training["batch_size"], training["batch_size"]), training["training_losses"], label = "Training")
+            axs[2].plot(range(0, floor(training["number_of_epochs"] / training["batch_size"]) * training["batch_size"], training["batch_size"]), training["tests_losses"], label = "Tests")
             axs[2].set_title("Loss")
             axs[2].set(xlabel = "Epoch", ylabel = "Loss")
             axs[2].legend()

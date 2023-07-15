@@ -4,6 +4,8 @@ use std::io::{self, Write};
 use serde::{Deserialize, Serialize};
 use fast_math::exp;
 use rand::Rng;
+use rand::thread_rng;
+use rand::seq::SliceRandom;
 
 
 #[derive(Serialize, Deserialize)]
@@ -70,7 +72,7 @@ extern "C" fn train_linear_model_classification(pointer_to_model: *mut f32,
             let mut randomly_ordered_dataset: Vec<usize> = (0..number_of_inputs).collect();
             randomly_ordered_dataset.shuffle(&mut thread_rng());
             for k in randomly_ordered_dataset {
-                let label: Vec<f32> = Vec::with_capacity(number_of_classes);
+                let mut label: Vec<f32> = Vec::with_capacity(number_of_classes);
                 for i in 0..number_of_classes {
                     label.push(labels[k * number_of_classes +  i]);
                 }
@@ -89,7 +91,7 @@ extern "C" fn train_linear_model_classification(pointer_to_model: *mut f32,
                         predicted_output = 1f32;
                     }
                     for i in 0..dimensions_of_inputs + 1 {
-                        weights[i * number_of_classes + j] += learning_rate * (label - predicted_output) * input[i];
+                        weights[i * number_of_classes + j] += learning_rate * (label[j] - predicted_output) * input[i];
                     }
                 }
             }
@@ -115,7 +117,7 @@ extern "C" fn train_linear_model_regression(pointer_to_inputs: *mut f32,
         let mut outputs:DMatrix<f32> = DMatrix::zeros(number_of_inputs, number_of_classes);
 
         for i in 0..number_of_inputs {
-            inputs[(i, 0)] = 1.0
+            inputs[(i, 0)] = 1.0;
             for j in 0..dimensions_of_inputs {
                 inputs[(i, j + 1)] = inputs[i * dimensions_of_inputs + j];
             }
@@ -151,6 +153,7 @@ extern "C" fn predict_with_linear_model(pointer_to_trained_model: *mut f32,
                                         pointer_to_inputs: *const f32,
                                         number_of_inputs: usize,
                                         dimensions_of_inputs: usize,
+                                        number_of_classes: usize,
                                         is_classification: bool
 ) -> *mut f32{
     unsafe{
@@ -162,16 +165,16 @@ extern "C" fn predict_with_linear_model(pointer_to_trained_model: *mut f32,
             for class in 0..number_of_classes{
                 let mut weighted_sum : f32 = 1f32 * trained_model[0 * number_of_classes + class];
                 for input_dimension in 1..dimensions_of_inputs + 1 {
-                    weighed_sum += inputs[input_number * dimensions_of_inputs + input_dimension - 1] * trained_model[input_dimension * number_of_classes + class]
+                    weighted_sum += inputs[input_number * dimensions_of_inputs + input_dimension - 1] * trained_model[input_dimension * number_of_classes + class]
                 }
                 if is_classification {
-                    if weighed_sum >= 0 {
+                    if weighted_sum >= 0f32 {
                         predicted_labels.push(1f32);
                     } else {
                         predicted_labels.push(-1f32);
                     }
                 } else {
-                    predicted_labels.push(weighed_sum);
+                    predicted_labels.push(weighted_sum);
                 }
             }
         }
@@ -270,8 +273,6 @@ extern "C" fn train_multi_layer_perceptron_model_old(pointer_to_model: *mut f32,
                                                        number_of_inputs * dimensions_of_inputs);
         let labels = std::slice::from_raw_parts(pointer_to_labels,
                                                 number_of_inputs * number_of_classes);
-        use rand::thread_rng;
-        use rand::seq::SliceRandom;
 
         for epoch_number in 0..number_of_epochs {
             let mut randomly_ordered_dataset: Vec<usize> = (0..number_of_inputs).collect();
@@ -327,11 +328,11 @@ extern "C" fn train_multi_layer_perceptron_model_old(pointer_to_model: *mut f32,
 
                 for l in (1..number_of_layers).rev() {
                     for i in 0..layers[l - 1] as usize + 1{
-                        let mut weighed_sum_of_errors = 0f32;
+                        let mut weighted_sum_of_errors = 0f32;
                         for j in 1..layers[l] as usize + 1{
-                            weighed_sum_of_errors += weights[l][i][j-1] * delta[l][j];
+                            weighted_sum_of_errors += weights[l][i][j-1] * delta[l][j];
                         }
-                        delta[l-1][i] = (1f32 - x[l - 1][i] * x[l - 1][i]) * weighed_sum_of_errors;
+                        delta[l-1][i] = (1f32 - x[l - 1][i] * x[l - 1][i]) * weighted_sum_of_errors;
                     }
                 }
 
@@ -677,7 +678,7 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
             }
 
             if check_accuracy_and_loss {
-                let training_accuracy:f32 = 1 - number_of_mispredicted_training_outputs as f32 / number_of_training_inputs as f32;
+                let training_accuracy:f32 = 1f32 - number_of_mispredicted_training_outputs as f32 / number_of_training_inputs as f32;
                 let training_loss:f32 = training_squarred_errors_sum / number_of_training_inputs as f32;
                 println!("Number of training inputs mispredicted : {:?}", number_of_mispredicted_training_outputs);
                 println!("Training inputs accuracy : {:?}", training_accuracy);
@@ -709,7 +710,7 @@ extern "C" fn train_multi_layer_perceptron_model(pointer_to_model: *mut f32,
                         tests_squarred_errors_sum += delta_test * delta_test;
                     }
                 }
-                let tests_accuracy:f32 = 1 - number_of_mispredicted_tests_outputs as f32 / number_of_tests_inputs as f32;
+                let tests_accuracy:f32 = 1f32 - number_of_mispredicted_tests_outputs as f32 / number_of_tests_inputs as f32;
                 let tests_loss:f32 = tests_squarred_errors_sum / number_of_tests_inputs as f32;
                 println!("Number of tests inputs mispredicted : {:?}", number_of_mispredicted_tests_outputs);
                 println!("Tests inputs accuracy: {:?}", tests_accuracy);

@@ -24,6 +24,7 @@ import ctypes
 from typing import *
 import re
 from math import floor
+import copy
 
 ### Debug
 import sys
@@ -439,7 +440,15 @@ def fonction_principale():
             model["inputs_height"] = inputs_height.get()
             model["inputs_color"] = inputs_color.get()
             model["dataset_folders"] = [[classes_list[i][0].get(), classes_list[i][3].get()] for i in range(min(int(number_of_classes.get()) if number_of_classes.get() else 0, MAX_NUMBER_OF_CLASSES))]
-            
+            if len(model["dataset_folders"]) != len(previous_dataset_folders) \
+                or any([model["dataset_folders"][i][j] != previous_dataset_folders[i][j] for i in range(len(previous_dataset_folders)) for j in range(2)]) :
+                nonlocal current_train_inputs, current_train_labels, current_number_of_training_inputs, current_tests_inputs, current_tests_labels, current_number_of_tests_inputs
+                current_train_inputs = []
+                current_train_labels = []
+                current_number_of_training_inputs = 0
+                current_tests_inputs = []
+                current_tests_labels = []
+                current_number_of_tests_inputs = 0            
 
             model["layers"] = layers
             entries_window.destroy()
@@ -539,7 +548,7 @@ def fonction_principale():
         #V
 
         nonlocal model
-        
+        previous_dataset_folders = copy.deepcopy(model["dataset_folders"])
         entries_window = Toplevel(main_window)
         entries_window.grab_set()
         entries_window.title("Configuration initiale")
@@ -648,12 +657,72 @@ def fonction_principale():
     # - show some stuff, but not necessarily return anything
 
     def train_linear_model():
-        pass
+        """FR : 
+        
+        EN : """
+        nonlocal current_train_inputs, current_train_labels, current_number_of_training_inputs, current_tests_inputs, \
+            current_tests_labels, current_number_of_tests_inputs, current_learning_rate, current_number_of_epochs, current_batch_size
+        current_learning_rate = float(learning_rate.get()) if learning_rate.get() else 0
+        current_number_of_epochs = int(number_of_epochs.get()) if number_of_epochs.get() else 0
+        current_batch_size = int(batch_size.get()) if batch_size.get() else 0
+        if isinstance(current_tests_inputs, list) :
+            current_train_inputs, current_train_labels, current_number_of_training_inputs, current_tests_inputs, current_tests_labels, current_number_of_tests_inputs \
+                = lib.read_dataset(model["dataset_folders"])
+        if isinstance(model["weights"], list) and model["weights"] == [] :
+            model["weights"] = lib.generate_linear_model(model["layers"][0], model["layers"][1])
+        model["weights"] = lib.train_multi_layer_perceptron_model(model["is_classification"],
+                                                                  model["layers"],
+                                                                  current_train_inputs,
+                                                                  current_tests_inputs,
+                                                                  current_train_labels,
+                                                                  current_tests_labels,
+                                                                  model["weights"],
+                                                                  current_learning_rate,
+                                                                  current_number_of_epochs,
+                                                                  current_number_of_training_inputs,
+                                                                  current_number_of_tests_inputs,
+                                                                  model["layers"][0],
+                                                                  len(model["dataset_folders"]),
+                                                                  current_batch_size)
+        with open("accuracies_and_losses.json", 'r') as accuracies_and_losses_file :
+            model["accuracies_and_losses"].append(load(accuracies_and_losses_file))
+        os.remove("accuracies_and_losses.json")
     #N
     
-    def predict_with_linear_model():
-        pass
-    #N
+    def predict_with_linear_model(on_new_data : bool = False):
+        """FR : 
+        
+        EN : """
+        nonlocal current_train_inputs, current_train_labels, current_number_of_training_inputs, current_tests_inputs, current_tests_labels, current_number_of_tests_inputs
+        if on_new_data :
+            resized_image = None
+            filepath = askopenfilename(title = "Load image", initialdir = MODELS_SAVE_FOLDER, filetypes = [("jpg", "*.jpg"), ("jpeg", "*.jpeg"), ("png", "*.png")])
+            if filepath :
+                print(filepath)
+                image_file = Image.open(filepath)
+                converted_image = image_file.convert("RGB" if model["inputs_color"] == 3 else "L")
+                resized_image = converted_image.resize((int(model["inputs_width"]), int(model["inputs_height"])))
+                if resized_image :
+                    resized_image = np.array(resized_image, dtype = ctypes.c_float).flatten()  / 255 * 2 - 1
+                else :
+                    return
+            else :
+                return
+        elif isinstance(current_tests_inputs, list) :
+            current_train_inputs, current_train_labels, current_number_of_training_inputs, current_tests_inputs, current_tests_labels, current_number_of_tests_inputs \
+                = lib.read_dataset(model["dataset_folders"])
+        if isinstance(model["weights"], list) and model["weights"] == [] :
+            model["weights"] = lib.generate_linear_model(model["layers"][0], model["layers"][1])
+        number_of_inputs_for_this_test = 1 if on_new_data else current_number_of_tests_inputs
+        predicted_dataset = lib.predict_with_linear_model(model["is_classification"],
+                                                          resized_image if on_new_data else current_tests_inputs,
+                                                          model["weights"],
+                                                          number_of_inputs_for_this_test,
+                                                          model["layers"][0],
+                                                          model["layers"][1])
+        predicted_dataset = predicted_dataset.reshape(number_of_inputs_for_this_test, len(model["dataset_folders"]))
+        print(predicted_dataset)
+    #V
 
     def train_mlp():
         """FR : 
@@ -683,19 +752,19 @@ def fonction_principale():
                                                                   model["layers"][0],
                                                                   len(model["dataset_folders"]),
                                                                   current_batch_size)
-        #TODO : implement loss data retrieving. Something like `model[""] = load loss json` should do it
         with open("accuracies_and_losses.json", 'r') as accuracies_and_losses_file :
             model["accuracies_and_losses"].append(load(accuracies_and_losses_file))
         os.remove("accuracies_and_losses.json")
-    #PV
+    #V
     
     def predict_with_mlp(on_new_data : bool = False):
         """FR : 
         
         EN : """
+        nonlocal current_train_inputs, current_train_labels, current_number_of_training_inputs, current_tests_inputs, current_tests_labels, current_number_of_tests_inputs
         if on_new_data :
             resized_image = None
-            filepath = askopenfilename(title = "Load model", initialdir = MODELS_SAVE_FOLDER, filetypes = [("fichier json", "*.jpg")])
+            filepath = askopenfilename(title = "Load image", initialdir = MODELS_SAVE_FOLDER, filetypes = [("jpg", "*.jpg"), ("jpeg", "*.jpeg"), ("png", "*.png")])
             if filepath :
                 print(filepath)
                 image_file = Image.open(filepath)
@@ -707,9 +776,7 @@ def fonction_principale():
                     return
             else :
                 return
-        
-        nonlocal current_train_inputs, current_train_labels, current_number_of_training_inputs, current_tests_inputs, current_tests_labels, current_number_of_tests_inputs
-        if isinstance(current_tests_inputs, list) :
+        elif isinstance(current_tests_inputs, list) :
             current_train_inputs, current_train_labels, current_number_of_training_inputs, current_tests_inputs, current_tests_labels, current_number_of_tests_inputs \
                 = lib.read_dataset(model["dataset_folders"])
         if isinstance(model["weights"], list) and model["weights"] == [] :
@@ -748,7 +815,7 @@ def fonction_principale():
             showinfo("Test complete", f"Total number of error : {total_error}\
                     \nTotal number of inputs : {number_of_inputs_for_this_test}\
                     \nAccuracy : {round((1 - total_error / number_of_inputs_for_this_test) * 100, 1)}%")
-    #N
+    #V
     
     def train_model():
         #match case would be better, if venv were adequate (Python version >= 3.10)
@@ -762,34 +829,32 @@ def fonction_principale():
             pass
     #V
     
-    def predict_with_model():
+    def predict_with_model(on_new_data : bool = False):
         #match case would be better, if venv were adequate (Python version >= 3.10)
         if model["model_type"] == "Linear" :
-            predict_with_linear_model()
+            predict_with_linear_model(on_new_data)
         elif model["model_type"] == "MLP" :
-            predict_with_mlp()
+            predict_with_mlp(on_new_data)
         elif model["model_type"] == "SVM" :
             pass
         elif model["model_type"] == "RBF" :
             pass
     #V
     
-    def predict_on_given_dataset():
-        predict_with_model()
-    #V
-    
     def print_loss():
         for number_of_training, training in enumerate(model["accuracies_and_losses"]) :
             fig, axs = plt.subplots(1, 3)
-            current_training_title = f"Training {number_of_training + 1} : "
+            current_training_title = f"{model['model_type']} model training {number_of_training + 1} : "
             match model["model_type"] :
                 case "Linear" :
-                    pass
+                    current_training_title += f" with learning rate : {training['learning_rate']}, on {training['number_of_epochs']} epochs.\
+                        \n{training['number_of_training_inputs']} training inputs, {training['number_of_tests_inputs']} tests inputs"
                 case "MLP" :
-                    current_training_title += f" with layers = {model['layers']}, on {training['number_of_epochs']} epochs."
-                    pass
+                    current_training_title += f" with layers : {model['layers']}, learning rate : {training['learning_rate']}, on {training['number_of_epochs']} epochs.\
+                        \n{training['number_of_training_inputs']} training inputs, {training['number_of_tests_inputs']} tests inputs"
                 case "RBF" :
-                    pass
+                    current_training_title += f" with {model['layers'][1]} clusters, learning rate : {training['learning_rate']}, on {training['number_of_epochs']} epochs.\
+                        \n{training['number_of_training_inputs']} training inputs, {training['number_of_tests_inputs']} tests inputs"
                 case "SVM" :
                     pass
                 case _ :
@@ -911,8 +976,8 @@ def fonction_principale():
     
     model_predict_frame = LabelFrame(cadre_interne, text = "Exploiting :")
     model_predict_frame.grid(row = 1, column = 3, padx = 5, pady = 5, sticky = NSEW)
-    Button(model_predict_frame, text = "Predict on given dataset", command = predict_on_given_dataset).grid(row = 0, column = 0, padx = 5, pady = 5)
-    Button(model_predict_frame, text = "Predict on new data", command = lambda : predict_with_mlp(True)).grid(row = 1, column = 0, padx = 5, pady = 5)
+    Button(model_predict_frame, text = "Predict on given dataset", command = predict_with_model).grid(row = 0, column = 0, padx = 5, pady = 5)
+    Button(model_predict_frame, text = "Predict on new data", command = lambda : predict_with_model(True)).grid(row = 1, column = 0, padx = 5, pady = 5)
     
     save_model_button = Button(cadre_interne, text = "Save model", command = save_model_as_file)
     save_model_button_image = PhotoImage(file = CONFIG_FOLDER + "icone_enregistrer.png")

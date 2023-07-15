@@ -49,6 +49,7 @@ rust_machine_learning_library.predict_with_linear_model.argtypes = [
     ctypes.POINTER(ctypes.c_float),
     ctypes.c_int32,
     ctypes.c_int32,
+    ctypes.c_int32,
     ctypes.c_bool,
 ]
 rust_machine_learning_library.predict_with_linear_model.restype = ctypes.POINTER(ctypes.c_float)

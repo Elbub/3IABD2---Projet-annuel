@@ -194,7 +194,6 @@ def fonction_principale():
             """FR : Supprime toutes les consignes.
             
             EN : Deletes all the setpoints."""
-            start_training_button["state"] = "normal",
             nonlocal layers
             layers = [layers[0], layers[-1]]
         #V
@@ -328,7 +327,7 @@ def fonction_principale():
                 
                 current_layer_frame = LabelFrame(internal_layers_frame, text = f"Input layer")
                 current_layer_frame.grid(row = 2, column = 0, columnspan = 3, padx = 5, pady = 4, sticky = 'w' + 'e')
-                Label(current_layer_frame, text = f"{model['layers'][0]} neuron(s)").grid(row = 1, column = 0, padx = 5, pady = 4, sticky = 'w')
+                Label(current_layer_frame, text = f"{layers[0]} neuron(s)").grid(row = 1, column = 0, padx = 5, pady = 4, sticky = 'w')
                 if model_type.get() == "MLP" :
                     Button(internal_layers_frame, text = "Add layer", command = lambda : add_layer(1)).grid(row = 3, column = 1, padx = 5, pady = 5, sticky = 'e')
                         
@@ -350,7 +349,7 @@ def fonction_principale():
                 
                 current_layer_frame = LabelFrame(internal_layers_frame, text = f"Output layer")
                 current_layer_frame.grid(row = (2 * MAX_LAYER_NUMBER), column = 0, columnspan = 3, padx = 5, pady = 4, sticky = 'w' + 'e')
-                Label(current_layer_frame, text = f"{model['layers'][-1]} neuron(s)").grid(row = 1, column = 0, padx = 5, pady = 4, sticky = 'w')
+                Label(current_layer_frame, text = f"{layers[-1]} neuron(s)").grid(row = 1, column = 0, padx = 5, pady = 4, sticky = 'w')
                 
                 Button(internal_layers_frame, text = "Cancel", command = cancel_changes).grid(row = (2 * MAX_LAYER_NUMBER + 2), column = 0, padx = 5, pady = 5)
                 if model_type.get() == "MLP" :
@@ -398,24 +397,23 @@ def fonction_principale():
         
         
         def display_model_specs():
-            # Is okay
-            """ """
+            """FR : 
+            
+            EN : """
             nonlocal layers
             for widget in model_type_frame.winfo_children()[4:] :
                 widget.destroy()
             
             if model_type.get() == "Linear" :
-                #TODO : check how I did the dic-filling window
                 Label(model_type_frame, text = f'{layers[0]} input(s), {layers[-1]} output(s)').grid(row = 2, column = 0, columnspan = 3, padx = 10, pady = 10)
             elif model_type.get() == "MLP" :
                 Label(model_type_frame, text = f'{layers[0]} input(s), {len(layers) - 2} hidden layers, {layers[-1]} output(s)').grid(row = 2, column = 0, columnspan = 3, padx = 10, pady = 10)
                 Button(model_type_frame, text = "Edit layers", command = edit_layers).grid(row = 2, column = 3, padx = 10, pady = 10)
             elif model_type.get() == "SVM" :
                 pass
-                # Label(model_type_frame, text = f'{layers[0]} input(s), {len(layers) - 2} hidden layers, {layers[-1]} output(s)').grid(row = 2, column = 0, columnspan = 3, padx = 10, pady = 10)
             elif model_type.get() == "RBF" :
                 Label(model_type_frame, text = f'{layers[0]} input(s), {len(layers) - 2} hidden layers, {layers[-1]} output(s)').grid(row = 2, column = 0, columnspan = 3, padx = 10, pady = 10)
-                Button(model_type_frame, text = "Edit layers", command = edit_number_of_clusters).grid(row = 2, column = 3, padx = 10, pady = 10)
+                Button(model_type_frame, text = "Edit layers", command = edit_layers).grid(row = 2, column = 3, padx = 10, pady = 10)
             else :
                 pass
         #PV   facultatif
@@ -566,9 +564,9 @@ def fonction_principale():
         number_of_classes = StringVar()
         number_of_classes.set(model["layers"][-1])
         if isinstance(model["layers"], np.ndarray) :
-            layers = model["layers"].to_list()
+            layers = model["layers"].tolist()
         else :
-            layers = model["layers"]
+            layers = model["layers"].copy()
         
         model_type_frame = LabelFrame(entries_window, text = "Model type :")
         model_type_frame.grid(row = 1, columnspan = 7, column = 0, padx = 10, pady = 10)
@@ -847,10 +845,15 @@ def fonction_principale():
             current_training_title = f"{model['model_type']} model training {number_of_training + 1} : "
             match model["model_type"] :
                 case "Linear" :
-                    current_training_title += f" with learning rate : {training['learning_rate']}, on {training['number_of_epochs']} epochs.\
+                    if 'learning_rate' in training :
+                        current_training_title += f" with learning rate : {training['learning_rate']},"
+                    current_training_title += f" on {training['number_of_epochs']} epochs.\
                         \n{training['number_of_training_inputs']} training inputs, {training['number_of_tests_inputs']} tests inputs"
                 case "MLP" :
-                    current_training_title += f" with layers : {model['layers']}, learning rate : {training['learning_rate']}, on {training['number_of_epochs']} epochs.\
+                    current_training_title += " with layers : {model['layers']}, "
+                    if 'learning_rate' in training :
+                        current_training_title += f"learning rate : {training['learning_rate']}, "
+                    current_training_title += f"on {training['number_of_epochs']} epochs.\
                         \n{training['number_of_training_inputs']} training inputs, {training['number_of_tests_inputs']} tests inputs"
                 case "RBF" :
                     current_training_title += f" with {model['layers'][1]} clusters, learning rate : {training['learning_rate']}, on {training['number_of_epochs']} epochs.\

@@ -845,7 +845,9 @@ def fonction_principale():
             current_training_title = f"{model['model_type']} model training {number_of_training + 1} : "
             match model["model_type"] :
                 case "Linear" :
-                    current_training_title += f" with learning rate : {training['learning_rate']}, on {training['number_of_epochs']} epochs.\
+                    if 'learning_rate' in training :
+                        current_training_title += f" with learning rate : {training['learning_rate']},"
+                    current_training_title += f" on {training['number_of_epochs']} epochs.\
                         \n{training['number_of_training_inputs']} training inputs, {training['number_of_tests_inputs']} tests inputs"
                 case "MLP" :
                     current_training_title += f" with layers : {model['layers']}, learning rate : {training['learning_rate']}, on {training['number_of_epochs']} epochs.\

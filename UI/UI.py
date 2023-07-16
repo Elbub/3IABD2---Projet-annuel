@@ -850,7 +850,10 @@ def fonction_principale():
                     current_training_title += f" on {training['number_of_epochs']} epochs.\
                         \n{training['number_of_training_inputs']} training inputs, {training['number_of_tests_inputs']} tests inputs"
                 case "MLP" :
-                    current_training_title += f" with layers : {model['layers']}, learning rate : {training['learning_rate']}, on {training['number_of_epochs']} epochs.\
+                    current_training_title += " with layers : {model['layers']}, "
+                    if 'learning_rate' in training :
+                        current_training_title += f"learning rate : {training['learning_rate']}, "
+                    current_training_title += f"on {training['number_of_epochs']} epochs.\
                         \n{training['number_of_training_inputs']} training inputs, {training['number_of_tests_inputs']} tests inputs"
                 case "RBF" :
                     current_training_title += f" with {model['layers'][1]} clusters, learning rate : {training['learning_rate']}, on {training['number_of_epochs']} epochs.\

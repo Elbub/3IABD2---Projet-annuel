@@ -112,26 +112,26 @@ extern "C" fn train_linear_model_regression(pointer_to_inputs: *mut f32,
     unsafe {
         use nalgebra::*;
 
-        let inputs = std::slice::from_raw_parts(pointer_to_inputs, number_of_inputs * dimensions_of_inputs);
-        let labels = std::slice::from_raw_parts(pointer_to_outputs, number_of_inputs * number_of_classes);
+        let flattened_inputs = std::slice::from_raw_parts(pointer_to_inputs, number_of_inputs * dimensions_of_inputs);
+        let flattened_labels = std::slice::from_raw_parts(pointer_to_outputs, number_of_inputs * number_of_classes);
         let mut inputs:DMatrix<f32> = DMatrix::zeros(number_of_inputs, dimensions_of_inputs + 1);
         let mut outputs:DMatrix<f32> = DMatrix::zeros(number_of_inputs, number_of_classes);
 
         for i in 0..number_of_inputs {
             inputs[(i, 0)] = 1.0;
             for j in 0..dimensions_of_inputs {
-                inputs[(i, j + 1)] = inputs[i * dimensions_of_inputs + j];
+                inputs[(i, j + 1)] = flattened_inputs[i * dimensions_of_inputs + j];
             }
         }
 
         for i in 0..number_of_inputs {
             for j in 0..number_of_classes {
-                outputs[(i, j)] = labels[i * number_of_classes + j];
+                outputs[(i, j)] = flattened_labels[i * number_of_classes + j];
             }
         }
 
         
-        let inputs_pseudo_inverse = matrix_pseudo_inverse(inputs,dimensions_of_inputs);
+        let inputs_pseudo_inverse = matrix_pseudo_inverse(inputs, dimensions_of_inputs + 1);
 
         let result_matrix = inputs_pseudo_inverse * outputs;
 

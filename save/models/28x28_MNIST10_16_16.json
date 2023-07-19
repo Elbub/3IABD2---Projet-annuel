@@ -1,0 +1,57 @@
+{
+    "weights": [],
+    "accuracies_and_losses": [],
+    "model_type": "MLP",
+    "is_classification": true,
+    "inputs_width": "28",
+    "inputs_height": "28",
+    "inputs_color": 1,
+    "layers": [
+        784,
+        16,
+        16,
+        10
+    ],
+    "dataset_folders": [
+        [
+            "database\\MNIST\\trainingSet\\trainingSet\\1",
+            "database\\MNIST\\testSet\\testSet\\1"
+        ],
+        [
+            "database\\MNIST\\trainingSet\\trainingSet\\2",
+            "database\\MNIST\\testSet\\testSet\\2"
+        ],
+        [
+            "database\\MNIST\\trainingSet\\trainingSet\\3",
+            "database\\MNIST\\testSet\\testSet\\3"
+        ],
+        [
+            "database\\MNIST\\trainingSet\\trainingSet\\4",
+            "database\\MNIST\\testSet\\testSet\\4"
+        ],
+        [
+            "database\\MNIST\\trainingSet\\trainingSet\\5",
+            "database\\MNIST\\testSet\\testSet\\5"
+        ],
+        [
+            "database\\MNIST\\trainingSet\\trainingSet\\6",
+            "database\\MNIST\\testSet\\testSet\\6"
+        ],
+        [
+            "database\\MNIST\\trainingSet\\trainingSet\\7",
+            "database\\MNIST\\testSet\\testSet\\7"
+        ],
+        [
+            "database\\MNIST\\trainingSet\\trainingSet\\8",
+            "database\\MNIST\\testSet\\testSet\\8"
+        ],
+        [
+            "database\\MNIST\\trainingSet\\trainingSet\\9",
+            "database\\MNIST\\testSet\\testSet\\9"
+        ],
+        [
+            "database\\MNIST\\trainingSet\\trainingSet\\0",
+            "database\\MNIST\\testSet\\testSet\\0"
+        ]
+    ]
+}

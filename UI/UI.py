@@ -314,9 +314,9 @@ def fonction_principale():
             #V
             
             def layers_display_update():
-                """FR : Gère l'affichage des consignes et de leurs boutons associés.
+                """FR : Gère l'affichage des couches et de leurs boutons associés.
                 
-                EN : Manages the display of the setpoints and their associated buttons."""
+                EN : Manages the display of the layers and their associated buttons."""
                 for widget in internal_layers_frame.winfo_children() :
                     widget.destroy()
 
@@ -405,14 +405,14 @@ def fonction_principale():
                 widget.destroy()
             
             if model_type.get() == "Linear" :
-                Label(model_type_frame, text = f'{layers[0]} input(s), {layers[-1]} output(s)').grid(row = 2, column = 0, columnspan = 3, padx = 10, pady = 10)
+                Label(model_type_frame, text = f'{layers[0]} input(s), {layers[-1]} output(s)                               ').grid(row = 2, column = 0, columnspan = 3, padx = 10, pady = 10, sticky = W)
             elif model_type.get() == "MLP" :
-                Label(model_type_frame, text = f'{layers[0]} input(s), {len(layers) - 2} hidden layers, {layers[-1]} output(s)').grid(row = 2, column = 0, columnspan = 3, padx = 10, pady = 10)
+                Label(model_type_frame, text = f'{layers[0]} input(s), {len(layers) - 2} hidden layers, {layers[-1]} output(s)').grid(row = 2, column = 0, columnspan = 3, padx = 10, pady = 10, sticky = W)
                 Button(model_type_frame, text = "Edit layers", command = edit_layers).grid(row = 2, column = 3, padx = 10, pady = 10)
             elif model_type.get() == "SVM" :
                 pass
             elif model_type.get() == "RBF" :
-                Label(model_type_frame, text = f'{layers[0]} input(s), {len(layers) - 2} hidden layers, {layers[-1]} output(s)').grid(row = 2, column = 0, columnspan = 3, padx = 10, pady = 10)
+                Label(model_type_frame, text = f'{layers[0]} input(s), {layers[1]} clusters, {layers[-1]} output(s)            ').grid(row = 2, column = 0, columnspan = 3, padx = 10, pady = 10, sticky = W)
                 Button(model_type_frame, text = "Edit layers", command = edit_layers).grid(row = 2, column = 3, padx = 10, pady = 10)
             else :
                 pass
@@ -850,7 +850,7 @@ def fonction_principale():
                     current_training_title += f" on {training['number_of_epochs']} epochs.\
                         \n{training['number_of_training_inputs']} training inputs, {training['number_of_tests_inputs']} tests inputs"
                 case "MLP" :
-                    current_training_title += " with layers : {model['layers']}, "
+                    current_training_title += f" with layers {model['layers']}, "
                     if 'learning_rate' in training :
                         current_training_title += f"learning rate : {training['learning_rate']}, "
                     current_training_title += f"on {training['number_of_epochs']} epochs.\
